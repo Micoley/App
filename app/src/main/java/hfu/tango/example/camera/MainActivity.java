@@ -2,7 +2,6 @@ package hfu.tango.example.camera;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
@@ -15,24 +14,14 @@ import com.google.atap.tangoservice.TangoEvent;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
-import com.projecttango.tangosupport.TangoSupport;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
-
-    /*private final ArrayList<TangoCoordinateFramePair> framePairs =
-            new ArrayList<>();*/
-
-    private final UpdatableBlockingBuffer<FloatBuffer> pointBuffer =
-            new UpdatableBlockingBuffer<>();
-
     private Tango tango;
     private TangoCameraPreview cameraPreview;
     private TangoCameraIntrinsics cameraIntrinsics;
     private OverlayView overlayView;
-    private TangoPoseData poseData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +32,6 @@ public class MainActivity extends Activity {
         tango = new Tango(this);
         overlayView = (OverlayView) findViewById(R.id.overlayView);
         cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
-
     }
 
     @Override
@@ -55,10 +43,6 @@ public class MainActivity extends Activity {
         } catch (TangoOutOfDateException e) {
             e.printStackTrace();
         }
-        Log.d("debug",String.valueOf(cameraIntrinsics.calibrationType));
-
-        //pointParser = new PointCloudParser(pointBuffer, out, this);
-        //pointParser.start();
     }
 
     @Override
@@ -70,7 +54,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         cameraPreview.disconnectFromTangoCamera();
-        //pointParser.interrupt();
     }
 
     private void connectTango() {
@@ -90,15 +73,14 @@ public class MainActivity extends Activity {
 
             @Override
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
-                overlayView.update(xyzIj.xyz, tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH));
+                overlayView.update(xyzIj.xyz, cameraIntrinsics);
                 overlayView.postInvalidate();
             }
 
             @Override
             public void onFrameAvailable(int cameraId) {
-                if(cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR)
+                if (cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR)
                     cameraPreview.onFrameAvailable();
-
             }
 
             @Override

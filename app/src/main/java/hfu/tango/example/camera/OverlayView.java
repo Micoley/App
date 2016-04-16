@@ -14,75 +14,39 @@ import java.nio.FloatBuffer;
 
 public class OverlayView extends View {
     private Paint paint;
+
+    {
+        paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(5);
+    }
+
     private FloatBuffer buffer;
     private TangoCameraIntrinsics intrinsics;
 
-    public OverlayView(Context context) {
-        super(context);
-
-        paint = new Paint();
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(5);
-    }
-
     public OverlayView(Context context, AttributeSet attrs) {
         super(context, attrs);
+    }
 
-        paint = new Paint();
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(5);
+    public OverlayView(Context context) {
+        super(context);
     }
 
     public void update(FloatBuffer buffer, TangoCameraIntrinsics intrinsics) {
+        // should use a buffer and an own thread instead
         this.buffer = buffer;
         this.intrinsics = intrinsics;
     }
 
-    /*
-    private float[] translateBuffer(FloatBuffer pBuffer) {
-        Log.d("debug", "calibration type: " + String.valueOf(intrinsics.calibrationType));
-        float[] drawBuffer = new float[pBuffer.capacity() * 2 / 3];
-
-        float fx = (float) intrinsics.fx;
-        float fy = (float) intrinsics.fy;
-        float cx = (float) intrinsics.cx;
-        float cy = (float) intrinsics.cy;
-
-        float k1 = (float) intrinsics.distortion[0];
-        float k2 = (float) intrinsics.distortion[1];
-        float k3 = (float) intrinsics.distortion[2];
-
-        for(int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
-
-            float x = pBuffer.get(i);
-            float y = pBuffer.get(i + 1);
-            float z = pBuffer.get(i + 2);
-            float ru = (float) ((Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) / Math.pow(z,2)));
-            float rd = (float) (ru + k1 * Math.pow(ru,3) + k2 * Math.pow(ru,5) + k3 * Math.pow(ru,7));
-
-            //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
-
-            drawBuffer[j] = (x / z * fx * rd / ru + cx);
-            drawBuffer[j + 1] = (x / z * fy * rd / ru + cy);
-
-            Log.d("debug", "ru: " + String.valueOf(ru) + " rd: " + String.valueOf(rd) + " fx: "
-                    + String.valueOf(fx) + " cx: " + String.valueOf(cx));
-
-            Log.d("debug", "[METER] x: " + String.valueOf(pBuffer.get(i)) + " y: " +
-                    String.valueOf(pBuffer.get(i + 1)) + " z: " + String.valueOf(pBuffer.get(i + 2)) +
-            " ratio: " + String.valueOf(pBuffer.get(i) / pBuffer.get(i + 1)));
-
-            Log.d("debug", "[KOORDINATEN] x: " + String.valueOf(drawBuffer[j]) +  " y: " + String.valueOf(drawBuffer[j + 1]) +
-            " ratio: " + String.valueOf(drawBuffer[j] / drawBuffer[j + 1]));
+    private float[] translateBuffer() {
+        if (intrinsics.calibrationType !=
+                TangoCameraIntrinsics.TANGO_CALIBRATION_POLYNOMIAL_3_PARAMETERS) {
+            // should throw some kind of tango exception
+            Log.d("debug", "wrong calibration type: " + String.valueOf(intrinsics.calibrationType));
+            return null;
         }
-        return drawBuffer;
-    }
-
-*/
-
-    private float[] translateBuffer(FloatBuffer pBuffer) {
-        Log.d("debug", "calibration type: " + String.valueOf(intrinsics.calibrationType));
-        float[] drawBuffer = new float[pBuffer.capacity() * 2 / 3];
+        FloatBuffer buffer = this.buffer; // need a copy of the object incase the buffer updates
+        float[] drawBuffer = new float[buffer.capacity() * 2 / 3];
 
         double fx = intrinsics.fx;
         double fy = intrinsics.fy;
@@ -93,28 +57,15 @@ public class OverlayView extends View {
         double k2 = intrinsics.distortion[1];
         double k3 = intrinsics.distortion[2];
 
-        for(int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
-
-            float x = pBuffer.get(i);
-            float y = pBuffer.get(i + 1);
-            float z = pBuffer.get(i + 2);
-            double ru = (Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) / Math.pow(z,2));
-            double rd = (ru + ( k1 * Math.pow(ru,3)) + ( k2 * Math.pow(ru,5)) + ( k3 * Math.pow(ru,7)));
-
-            //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
+        for (int i = 0, j = 0; i < buffer.capacity(); i += 3, j += 2) {
+            float x = buffer.get(i);
+            float y = buffer.get(i + 1);
+            float z = buffer.get(i + 2);
+            double ru = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / Math.pow(z, 2);
+            double rd = (ru + (k1 * Math.pow(ru, 3)) + (k2 * Math.pow(ru, 5)) + (k3 * Math.pow(ru, 7)));
 
             drawBuffer[j] = (float) ((x / z * fx * rd / ru) + cx) * 5;
             drawBuffer[j + 1] = (float) ((y / z * fy * rd / ru) + cy) * 5;
-
-            Log.d("debug", "ru: " + String.valueOf(ru) + " rd: " + String.valueOf(rd) + " fx: "
-                    + String.valueOf(fx) + " cx: " + String.valueOf(cx));
-
-            Log.d("debug", "[METER] x: " + String.valueOf(pBuffer.get(i)) + " y: " +
-                    String.valueOf(pBuffer.get(i + 1)) + " z: " + String.valueOf(pBuffer.get(i + 2)) +
-                    " ratio: " + String.valueOf(pBuffer.get(i) / pBuffer.get(i + 1)));
-
-            Log.d("debug", "[KOORDINATEN] x: " + String.valueOf(drawBuffer[j]) +  " y: " + String.valueOf(drawBuffer[j + 1]) +
-                    " ratio: " + String.valueOf(drawBuffer[j] / drawBuffer[j + 1]));
         }
         return drawBuffer;
     }
@@ -131,8 +82,7 @@ public class OverlayView extends View {
         super.onDraw(canvas);
 
         if (buffer != null) {
-            float[] points = translateBuffer(buffer);
-            canvas.drawPoints(translateBuffer(buffer), paint);
+            canvas.drawPoints(translateBuffer(), paint);
         }
     }
 }
