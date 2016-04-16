@@ -38,6 +38,7 @@ public class OverlayView extends View {
         this.intrinsics = intrinsics;
     }
 
+    /*
     private float[] translateBuffer(FloatBuffer pBuffer) {
         Log.d("debug", "calibration type: " + String.valueOf(intrinsics.calibrationType));
         float[] drawBuffer = new float[pBuffer.capacity() * 2 / 3];
@@ -73,6 +74,47 @@ public class OverlayView extends View {
 
             Log.d("debug", "[KOORDINATEN] x: " + String.valueOf(drawBuffer[j]) +  " y: " + String.valueOf(drawBuffer[j + 1]) +
             " ratio: " + String.valueOf(drawBuffer[j] / drawBuffer[j + 1]));
+        }
+        return drawBuffer;
+    }
+
+*/
+
+    private float[] translateBuffer(FloatBuffer pBuffer) {
+        Log.d("debug", "calibration type: " + String.valueOf(intrinsics.calibrationType));
+        float[] drawBuffer = new float[pBuffer.capacity() * 2 / 3];
+
+        double fx = intrinsics.fx;
+        double fy = intrinsics.fy;
+        double cx = intrinsics.cx;
+        double cy = intrinsics.cy;
+
+        double k1 = intrinsics.distortion[0];
+        double k2 = intrinsics.distortion[1];
+        double k3 = intrinsics.distortion[2];
+
+        for(int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
+
+            float x = pBuffer.get(i);
+            float y = pBuffer.get(i + 1);
+            float z = pBuffer.get(i + 2);
+            double ru = (Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) / Math.pow(z,2));
+            double rd = (ru + ( k1 * Math.pow(ru,3)) + ( k2 * Math.pow(ru,5)) + ( k3 * Math.pow(ru,7)));
+
+            //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
+
+            drawBuffer[j] = (float) ((x / z * fx * rd / ru) + cx) * 5;
+            drawBuffer[j + 1] = (float) ((y / z * fy * rd / ru) + cy) * 5;
+
+            Log.d("debug", "ru: " + String.valueOf(ru) + " rd: " + String.valueOf(rd) + " fx: "
+                    + String.valueOf(fx) + " cx: " + String.valueOf(cx));
+
+            Log.d("debug", "[METER] x: " + String.valueOf(pBuffer.get(i)) + " y: " +
+                    String.valueOf(pBuffer.get(i + 1)) + " z: " + String.valueOf(pBuffer.get(i + 2)) +
+                    " ratio: " + String.valueOf(pBuffer.get(i) / pBuffer.get(i + 1)));
+
+            Log.d("debug", "[KOORDINATEN] x: " + String.valueOf(drawBuffer[j]) +  " y: " + String.valueOf(drawBuffer[j + 1]) +
+                    " ratio: " + String.valueOf(drawBuffer[j] / drawBuffer[j + 1]));
         }
         return drawBuffer;
     }
