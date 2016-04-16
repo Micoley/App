@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
         cameraPreview = (TangoCameraPreview) findViewById(R.id.cameraPreview);
         tango = new Tango(this);
         overlayView = (OverlayView) findViewById(R.id.overlayView);
-        cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+        cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
 
     }
 
@@ -90,7 +90,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
-                overlayView.update(xyzIj, cameraIntrinsics, tango.getPoseAtTime(xyzIj.timestamp, framePairs.get(0)));
+                overlayView.update(xyzIj.xyz, tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH));
                 overlayView.postInvalidate();
             }
 

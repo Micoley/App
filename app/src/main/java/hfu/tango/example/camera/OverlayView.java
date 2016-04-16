@@ -9,19 +9,13 @@ import android.util.Log;
 import android.view.View;
 
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
-import com.google.atap.tangoservice.TangoPoseData;
-import com.google.atap.tangoservice.TangoXyzIjData;
-import com.projecttango.tangosupport.TangoSupport;
 
 import java.nio.FloatBuffer;
 
 public class OverlayView extends View {
     private Paint paint;
-    private TangoSupport.DepthBuffer buffer;
-    private TangoXyzIjData data;
-    private TangoPoseData poseData;
-    private TangoCameraIntrinsics cameraIntrinsics;
-    private boolean isSet = false;
+    private FloatBuffer buffer;
+    private TangoCameraIntrinsics intrinsics;
 
     public OverlayView(Context context) {
         super(context);
@@ -38,8 +32,6 @@ public class OverlayView extends View {
         paint.setColor(Color.WHITE);
         paint.setStrokeWidth(5);
     }
-
-    /*
 
     public void update(FloatBuffer buffer, TangoCameraIntrinsics intrinsics) {
         this.buffer = buffer;
@@ -67,7 +59,7 @@ public class OverlayView extends View {
             float ru = (float) ((Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) / Math.pow(z,2)));
             float rd = (float) (ru + k1 * Math.pow(ru,3) + k2 * Math.pow(ru,5) + k3 * Math.pow(ru,7));
 
-            float rd2 = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
+            //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
 
             drawBuffer[j] = (x / z * fx * rd / ru + cx);
             drawBuffer[j + 1] = (x / z * fy * rd / ru + cy);
@@ -84,14 +76,6 @@ public class OverlayView extends View {
         }
         return drawBuffer;
     }
-    */
-
-    public void update(TangoXyzIjData data, TangoCameraIntrinsics cameraIntrinsics, TangoPoseData poseData) {
-        if (!isSet) isSet = true;
-        this.data = data;
-        this.cameraIntrinsics = cameraIntrinsics;
-        this.poseData = poseData;
-    }
 
     private int zToColor(float z) {
         if (z * 50 >= 255)
@@ -104,29 +88,9 @@ public class OverlayView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-
-        //paint.setColor(paint.getColor() == Color.WHITE ? Color.BLACK : Color.WHITE);
-
-        if (isSet) {
-            for (float u = 0; u <= 1f; u += 0.01) {
-                for (float v = 0; v <= 1f; v += 0.01) {
-                    float[] point = TangoSupport.getDepthAtPointNearestNeighbor(data, cameraIntrinsics, poseData, u, v);
-                    /*if(point != null) {
-                        Log.d("debug",
-                                "x: " + String.valueOf(point[0]) +
-                                        " y: " + String.valueOf(point[1]) +
-                                        " z: " + String.valueOf(point[2])); */
-                    if (point != null) {
-                        paint.setColor(zToColor(point[2]));
-                    } else {
-                        paint.setColor(Color.WHITE);
-                    }
-                    canvas.drawPoint(u * 1920, v * 1200, paint);
-                }
-            }
-            //canvas.drawPoints(translateBuffer(buffer), paint);
-            // canvas.drawPoints(translateBuffer(buffer), paint);
-
+        if (buffer != null) {
+            float[] points = translateBuffer(buffer);
+            canvas.drawPoints(translateBuffer(buffer), paint);
         }
     }
 }
