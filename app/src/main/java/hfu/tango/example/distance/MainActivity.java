@@ -2,10 +2,12 @@ package hfu.tango.example.distance;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.util.Log;
 
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
+import com.google.atap.tangoservice.TangoCameraIntrinsics;
+import com.google.atap.tangoservice.TangoCameraPreview;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoErrorException;
@@ -19,39 +21,42 @@ import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
-    private final ArrayList<TangoCoordinateFramePair> framePairs =
-            new ArrayList<>();
+    /*private final ArrayList<TangoCoordinateFramePair> framePairs =
+            new ArrayList<>();*/
 
     private final UpdatableBlockingBuffer<FloatBuffer> pointBuffer =
             new UpdatableBlockingBuffer<>();
 
     private Tango tango;
-    private PointCloudParser pointParser;
-    private TextView out;
+    private TangoCameraPreview cameraPreview;
+    private TangoCameraIntrinsics cameraIntrinsics;
+    private OverlayView overlayView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        cameraPreview = (TangoCameraPreview) findViewById(R.id.cameraPreview);
         tango = new Tango(this);
-        out = (TextView) findViewById(R.id.textView);
+        overlayView = (OverlayView) findViewById(R.id.overlayView);
+        cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
 
-        framePairs.add(new TangoCoordinateFramePair(
-                TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
-                TangoPoseData.COORDINATE_FRAME_DEVICE));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        cameraPreview.connectToTangoCamera(tango, TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
         try {
             connectTango();
         } catch (TangoOutOfDateException e) {
             e.printStackTrace();
         }
-        pointParser = new PointCloudParser(pointBuffer, out, this);
-        pointParser.start();
+        Log.d("debug",String.valueOf(cameraIntrinsics.calibrationType));
+
+        //pointParser = new PointCloudParser(pointBuffer, out, this);
+        //pointParser.start();
     }
 
     @Override
@@ -62,23 +67,37 @@ public class MainActivity extends Activity {
         } catch (TangoErrorException e) {
             e.printStackTrace();
         }
-        pointParser.interrupt();
+        cameraPreview.disconnectFromTangoCamera();
+        //pointParser.interrupt();
     }
 
     private void connectTango() {
         TangoConfig tangoConfig = tango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
+        tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_MOTIONTRACKING, true);
         tango.connect(tangoConfig);
+
+        ArrayList<TangoCoordinateFramePair> framePairs = new ArrayList<>();
+
+        framePairs.add(new TangoCoordinateFramePair(
+                TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                TangoPoseData.COORDINATE_FRAME_DEVICE));
+
 
         tango.connectListener(framePairs, new OnTangoUpdateListener() {
 
             @Override
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
-                pointBuffer.update(xyzIj.xyz);
+                overlayView.update(xyzIj.xyz, cameraIntrinsics);
+                overlayView.postInvalidate();
             }
 
             @Override
-            public void onFrameAvailable(int i) {}
+            public void onFrameAvailable(int cameraId) {
+                if(cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR)
+                    cameraPreview.onFrameAvailable();
+
+            }
 
             @Override
             public void onPoseAvailable(final TangoPoseData pose) {}
