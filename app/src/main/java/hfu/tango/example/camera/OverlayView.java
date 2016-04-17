@@ -46,7 +46,8 @@ public class OverlayView extends View {
         float fy = (float) intrinsics.fy;
         float cx = (float) intrinsics.cx;
         float cy = (float) intrinsics.cy;
-
+        float w = (float) intrinsics.width;
+        float h = (float) intrinsics.height;
         float k1 = (float) intrinsics.distortion[0];
         float k2 = (float) intrinsics.distortion[1];
         float k3 = (float) intrinsics.distortion[2];
@@ -56,24 +57,10 @@ public class OverlayView extends View {
             float x = pBuffer.get(i);
             float y = pBuffer.get(i + 1);
             float z = pBuffer.get(i + 2);
-            float ru = (float) ((Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) / Math.pow(z,2)));
-            float rd = (float) (ru + k1 * Math.pow(ru,3) + k2 * Math.pow(ru,5) + k3 * Math.pow(ru,7));
-
-            //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
-            drawBuffer[j] = x * fx + z * cx;
-            drawBuffer[j + 1] = y * fy + z * cy;
-          //  drawBuffer[j] = (x / z * fx * rd / ru + cx);
-          //  drawBuffer[j + 1] = (x / z * fy * rd / ru + cy);
-
-            Log.d("debug", "ru: " + String.valueOf(ru) + " rd: " + String.valueOf(rd) + " fx: "
-                    + String.valueOf(fx) + " cx: " + String.valueOf(cx));
-
-            Log.d("debug", "[METER] x: " + String.valueOf(pBuffer.get(i)) + " y: " +
-                    String.valueOf(pBuffer.get(i + 1)) + " z: " + String.valueOf(pBuffer.get(i + 2)) +
-            " ratio: " + String.valueOf(pBuffer.get(i) / pBuffer.get(i + 1)));
-
-            Log.d("debug", "[KOORDINATEN] x: " + String.valueOf(drawBuffer[j]) +  " y: " + String.valueOf(drawBuffer[j + 1]) +
-            " ratio: " + String.valueOf(drawBuffer[j] / drawBuffer[j + 1]));
+            //drawBuffer[j] = (x * fx + z * cx) / z;
+            //drawBuffer[j + 1] = (y * fy + z * cy) / z;
+            drawBuffer[j] = (x * fx + z * cx) * this.getWidth()/w;
+            drawBuffer[j + 1] = (y * fy + z * cy) * this.getHeight()/h;
         }
         return drawBuffer;
     }
