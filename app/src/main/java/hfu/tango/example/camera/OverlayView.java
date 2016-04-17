@@ -60,9 +60,10 @@ public class OverlayView extends View {
             float rd = (float) (ru + k1 * Math.pow(ru,3) + k2 * Math.pow(ru,5) + k3 * Math.pow(ru,7));
 
             //float rd = (float) (1 / k1 * Math.atan(2 * ru * Math.tan(k1)/2));
-
-            drawBuffer[j] = (x / z * fx * rd / ru + cx);
-            drawBuffer[j + 1] = (x / z * fy * rd / ru + cy);
+            drawBuffer[j] = x * fx + z * cx;
+            drawBuffer[j + 1] = y * fy + z * cy;
+          //  drawBuffer[j] = (x / z * fx * rd / ru + cx);
+          //  drawBuffer[j + 1] = (x / z * fy * rd / ru + cy);
 
             Log.d("debug", "ru: " + String.valueOf(ru) + " rd: " + String.valueOf(rd) + " fx: "
                     + String.valueOf(fx) + " cx: " + String.valueOf(cx));
