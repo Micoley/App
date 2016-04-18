@@ -59,8 +59,8 @@ public class OverlayView extends View {
             float z = pBuffer.get(i + 2);
             //drawBuffer[j] = (x * fx + z * cx) / z;
             //drawBuffer[j + 1] = (y * fy + z * cy) / z;
-            drawBuffer[j] = (x * fx + z * cx) * this.getWidth()/w;
-            drawBuffer[j + 1] = (y * fy + z * cy) * this.getHeight()/h;
+            drawBuffer[j] = (x * fx + z * cx) / z * (this.getWidth()/w);
+            drawBuffer[j + 1] = (y * fy + z * cy) / z * (this.getHeight()/h);
         }
         return drawBuffer;
     }
