@@ -52,15 +52,15 @@ public class OverlayView extends View {
         float k2 = (float) intrinsics.distortion[1];
         float k3 = (float) intrinsics.distortion[2];
 
-        for(int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
+        for (int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
 
             float x = pBuffer.get(i);
             float y = pBuffer.get(i + 1);
             float z = pBuffer.get(i + 2);
             //drawBuffer[j] = (x * fx + z * cx) / z;
             //drawBuffer[j + 1] = (y * fy + z * cy) / z;
-            drawBuffer[j] = (x * fx + z * cx) / z * (this.getWidth()/w);
-            drawBuffer[j + 1] = (y * fy + z * cy) / z * (this.getHeight()/h);
+            drawBuffer[j] = (x * fx + z * cx) / z * (this.getWidth() / w);
+            drawBuffer[j + 1] = (y * fy + z * cy) / z * (this.getHeight() / h);
         }
         return drawBuffer;
     }
@@ -71,17 +71,44 @@ public class OverlayView extends View {
         else
             return Color.rgb((int) (255 - z * 50), 0, 0);
     }
+    private int zToColorFull(float z){
+        int R = (int)(255 * z) / 5;
+        int G = (int)(255 * (5 - z)) / 5;
+        return  Color.rgb(R,G,0);
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         if (buffer != null) {
-            float[] points = translateBuffer(buffer);
-            canvas.drawPoints(translateBuffer(buffer), paint);
+           // float[] points = translateBuffer(buffer);
+            //canvas.drawPoints(translateBuffer(buffer), paint);
+            drawPointperPoint(canvas, buffer);
         }
     }
 
 
-    
+    private void drawPointperPoint(Canvas canvas, FloatBuffer pBuffer) {
+        float fx = (float) intrinsics.fx;
+        float fy = (float) intrinsics.fy;
+        float cx = (float) intrinsics.cx;
+        float cy = (float) intrinsics.cy;
+        float w = (float) intrinsics.width;
+        float h = (float) intrinsics.height;
+        float k1 = (float) intrinsics.distortion[0];
+        float k2 = (float) intrinsics.distortion[1];
+        float k3 = (float) intrinsics.distortion[2];
+
+        for (int i = 0, j = 0; i < pBuffer.capacity(); i += 3, j += 2) {
+
+            float x = pBuffer.get(i);
+            float y = pBuffer.get(i + 1);
+            float z = pBuffer.get(i + 2);
+            //drawBuffer[j] = (x * fx + z * cx) / z;
+            //drawBuffer[j + 1] = (y * fy + z * cy) / z;
+            paint.setColor(zToColorFull(z));
+            canvas.drawPoint((x * fx + z * cx) / z * (this.getWidth() / w), (y * fy + z * cy) / z * (this.getHeight() / h), paint);
+        }
+    }
 }
