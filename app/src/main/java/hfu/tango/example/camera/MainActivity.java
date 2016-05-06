@@ -21,18 +21,10 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
-
-    /*private final ArrayList<TangoCoordinateFramePair> framePairs =
-            new ArrayList<>();*/
-
-    private final UpdatableBlockingBuffer<FloatBuffer> pointBuffer =
-            new UpdatableBlockingBuffer<>();
-
     private Tango tango;
     private TangoCameraPreview cameraPreview;
     private TangoCameraIntrinsics cameraIntrinsics;
     private OverlayView overlayView;
-    private TangoPoseData poseData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +48,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         Log.d("debug",String.valueOf(cameraIntrinsics.calibrationType));
-
-        //pointParser = new PointCloudParser(pointBuffer, out, this);
-        //pointParser.start();
     }
 
     @Override
@@ -70,7 +59,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         cameraPreview.disconnectFromTangoCamera();
-        //pointParser.interrupt();
     }
 
     private void connectTango() {
@@ -84,7 +72,6 @@ public class MainActivity extends Activity {
         framePairs.add(new TangoCoordinateFramePair(
                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                 TangoPoseData.COORDINATE_FRAME_DEVICE));
-
 
         tango.connectListener(framePairs, new OnTangoUpdateListener() {
 
