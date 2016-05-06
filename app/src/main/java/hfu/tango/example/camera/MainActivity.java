@@ -2,7 +2,6 @@ package hfu.tango.example.camera;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
@@ -15,15 +14,25 @@ import com.google.atap.tangoservice.TangoEvent;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
-import com.projecttango.tangosupport.TangoSupport;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
+    /**
+     * Wird benötigt um auf die Project Tango spezifischen Sensoren zuzugreifen
+     */
     private Tango tango;
+    /**
+     * Ausgabe des Kamerabilds
+     */
     private TangoCameraPreview cameraPreview;
+    /**
+     * Einstellungen und Informationen zu den einzelnen Kameras
+     */
     private TangoCameraIntrinsics cameraIntrinsics;
+    /**
+     * Anzeigen der Punktewolke
+     */
     private OverlayView overlayView;
 
     @Override
@@ -32,12 +41,15 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         cameraPreview = (TangoCameraPreview) findViewById(R.id.cameraPreview);
-        tango = new Tango(this);
         overlayView = (OverlayView) findViewById(R.id.overlayView);
+        tango = new Tango(this);
         cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
-
     }
 
+    /**
+     * Wenn die App aktiv ist soll die cameraPreview wieder das Bild der Farbkamera anzeigen
+     * und Tango verbunden werden
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -47,9 +59,12 @@ public class MainActivity extends Activity {
         } catch (TangoOutOfDateException e) {
             e.printStackTrace();
         }
-        Log.d("debug",String.valueOf(cameraIntrinsics.calibrationType));
     }
 
+    /**
+     * Sobald die App pausiert wird sollen Tango und cameraPreview ausgeschaltet werden,
+     * um Performance und Energie zu sparen
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -61,6 +76,10 @@ public class MainActivity extends Activity {
         cameraPreview.disconnectFromTangoCamera();
     }
 
+    /**
+     * Einstellen der Tango-Sensorik und Erzeugen des Listeners,
+     * der auf Tango-Events reagiert
+     */
     private void connectTango() {
         TangoConfig tangoConfig = tango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
@@ -75,12 +94,20 @@ public class MainActivity extends Activity {
 
         tango.connectListener(framePairs, new OnTangoUpdateListener() {
 
+            /**
+             * Wird aufgerufen wenn neue Daten des Tiefensensors verfügbar sind
+             * @param xyzIj Enthält die Entfernungsangaben in Meter in der Form: x1,y1,z1,x2,y2,z2...
+             */
             @Override
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
                 overlayView.update(xyzIj.xyz, tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH));
                 overlayView.postInvalidate();
             }
 
+            /**
+             * Wird aufgerufen wenn ein neues Kamerabild verfügbar ist
+             * @param cameraId Die ID der jeweiligen Kamera
+             */
             @Override
             public void onFrameAvailable(int cameraId) {
                 if(cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR)
