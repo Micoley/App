@@ -2,6 +2,7 @@ package hfu.tango.main.mainapp;
 
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
@@ -9,18 +10,22 @@ import android.view.WindowManager;
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
+import com.google.atap.tangoservice.TangoCameraPreview;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoErrorException;
 import com.google.atap.tangoservice.TangoEvent;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
+import com.google.atap.tangoservice.TangoTextureCameraPreview;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import java.util.ArrayList;
@@ -45,25 +50,16 @@ public class TangoActivity extends Activity {
     /**
      * Die View auf der das Kamerabild angezeigt wird
      */
-    private CameraBridgeViewBase mOpenCvCameraView;
+    private TangoTextureCameraPreview mCameraPreview;
 
     /**
-     * Callback der aufgerufen wird wenn sich die App mit dem OpenCV-Manager verbunden hat
+     * Thread der Mats aus dem CameraPreview generiert
      */
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+    private OpenCvUpdater mCvUpdater;
 
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case BaseLoaderCallback.SUCCESS:
-                    mOpenCvCameraView.enableView();
-                    break;
-                default:
-                    super.onManagerConnected(status);
-                    break;
-            }
-        }
-    };
+    static {
+        System.loadLibrary("opencv_java3");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,27 +67,26 @@ public class TangoActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_tango);
 
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.openCvCameraView);
-        mOpenCvCameraView.setCvCameraViewListener(new OpenCvCameraListener());
         mOverlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
         mTango = new Tango(this);
+        mCameraPreview = (TangoTextureCameraPreview) findViewById(R.id.textureCameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+        mCvUpdater = new OpenCvUpdater();
+        mCvUpdater.start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        mCameraPreview.connectToTangoCamera(mTango,
+                TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+
         try {
             connectTango();
         } catch (TangoOutOfDateException e) {
             e.printStackTrace();
         }
-
-        /* sorgt dafür, dass die Verbindung zum OpenCV-Manager sowie der Aufruf des Callbacks
-           asynchron stattfinden
-         */
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
     @Override
@@ -103,10 +98,6 @@ public class TangoActivity extends Activity {
         } catch (TangoErrorException e) {
             e.printStackTrace();
         }
-
-        if (mOpenCvCameraView != null) {
-            mOpenCvCameraView.disableView();
-        }
     }
 
     @Override
@@ -117,10 +108,6 @@ public class TangoActivity extends Activity {
             mTango.disconnect();
         } catch (TangoErrorException e) {
             e.printStackTrace();
-        }
-
-        if (mOpenCvCameraView != null) {
-            mOpenCvCameraView.disableView();
         }
     }
 
@@ -160,8 +147,11 @@ public class TangoActivity extends Activity {
              */
             @Override
             public void onFrameAvailable(int cameraId) {
-            }
+                if (cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR) {
+                    mCameraPreview.onFrameAvailable();
 
+        }
+    }
             @Override
             public void onPoseAvailable(final TangoPoseData pose) {
             }
@@ -172,29 +162,28 @@ public class TangoActivity extends Activity {
         });
     }
 
-
-    /**
-     * Klasse die auf Events des OpenCvCameraViews reagiert
-     */
-    private class OpenCvCameraListener implements CvCameraViewListener2 {
+    private class OpenCvUpdater extends Thread {
 
         @Override
-        public void onCameraViewStarted(int width, int height) {
-        }
-
-        @Override
-        public void onCameraViewStopped() {
-        }
-
-        /**
-         * wird aufgerufen wenn ein neues Bild der Kamera verfügbar ist
-         *
-         * @param inputFrame das neue Frame
-         * @return die Matrix-Darstellung des Kamerabildes in RGBA bzw. Graustufen
-         */
-        @Override
-        public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-            return inputFrame.rgba();
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+                    Thread.sleep(1000);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Bitmap bmp = mCameraPreview.getBitmap();
+                            if (bmp != null) {
+                                Mat imgMat = new Mat(bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
+                                Utils.bitmapToMat(bmp, imgMat);
+                                Log.d("HFU_DEBUG", String.valueOf(imgMat));
+                            }
+                        }
+                    });
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
