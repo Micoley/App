@@ -20,12 +20,9 @@ public class Rectangle {
 		}
 	}
 	
-	public double[] getPoints(){
-		double[] r = new double[8];
-		for(int i = 0; i < 4; i++){
-			r[2*i] = points[i].x;
-			r[2*i+1] = points[i].y;
-		}
+	public Point[] getPoints(){
+		Point[] r = new Point[4];
+		r = points.clone();
 		return r;
 	}
 	
