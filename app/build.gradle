@@ -1,6 +1,16 @@
 apply plugin: 'com.android.model.application'
 
 model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            prebuilt {
+                headers.srcDir "src/main/tangoLibs"
+                binaries.withType(SharedLibraryBinary) {
+                    sharedLibraryFile = file("src/main/tangoLibs/libtango_client_api.so")
+                }
+            }
+        }
+    }
     android {
         compileSdkVersion = 23
         buildToolsVersion = "23.0.3"
@@ -11,6 +21,21 @@ model {
             targetSdkVersion.apiLevel = 23
             versionCode = 1
             versionName = "1.0"
+        }
+        ndk {
+            moduleName = 'framebuffer'
+            //ldFlags.add("-L/app/src/main/jniLibs")
+            //ldLibs.add("libtango_client_api.so")
+            ldLibs.add("log")
+        }
+        sources {
+            main {
+                jni {
+                    dependencies {
+                        library "prebuilt"
+                    }
+                }
+            }
         }
         buildTypes {
             release {

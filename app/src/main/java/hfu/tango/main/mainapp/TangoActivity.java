@@ -44,7 +44,10 @@ public class TangoActivity extends Activity {
 
     static {
         System.loadLibrary("opencv_java3");
+        System.loadLibrary("framebuffer");
     }
+
+    public native void printHello();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +67,8 @@ public class TangoActivity extends Activity {
 
         mCameraPreview.connectToTangoCamera(mTango,
                 TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+
+        printHello();
 
         try {
             connectTango();
