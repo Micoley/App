@@ -2,5 +2,9 @@
     {
         "outputFile": "D:\\Workspace\\Android\\Projects\\MainApp\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
         "map": []
+    },
+    {
+        "outputFile": "D:\\Workspace\\Android\\Projects\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "map": []
     }
 ]
