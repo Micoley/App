@@ -34,7 +34,6 @@ public class OverlayRenderer extends View implements Runnable {
      * Die Overlayview wird mit den neuen Informationen des Tiefensensors geupdatet
      */
     public void update(FloatBuffer buffer, TangoCameraIntrinsics intrinsics) {
-        Log.d("HFU_DEBUG", "update() aufgerufen");
         this.buffer = buffer;
         this.intrinsics = intrinsics;
     }
@@ -76,8 +75,6 @@ public class OverlayRenderer extends View implements Runnable {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        Log.d("HFU_DEBUG", "onDraw() aufgerufen");
 
         if (buffer != null) {
             drawPointBuffer(canvas);

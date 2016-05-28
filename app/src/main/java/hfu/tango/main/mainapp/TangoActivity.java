@@ -133,8 +133,9 @@ public class TangoActivity extends Activity {
                 if (cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR) {
                     mCameraPreview.onFrameAvailable();
 
-        }
-    }
+                }
+            }
+
             @Override
             public void onPoseAvailable(final TangoPoseData pose) {
             }
