@@ -19,6 +19,7 @@ import com.google.atap.tangoservice.TangoTextureCameraPreview;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class TangoActivity extends Activity {
 
@@ -44,6 +45,8 @@ public class TangoActivity extends Activity {
 
     private Processing mProcessing;
 
+    private TextToSpeech mTTS;
+
     static {
         System.loadLibrary("opencv_java3");
     }
@@ -58,6 +61,14 @@ public class TangoActivity extends Activity {
         mTango = new Tango(this);
         mCameraPreview = (CameraRenderer) findViewById(R.id.cameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                mTTS.setLanguage(Locale.GERMAN);
+                mTTS.speakWithDelay("rechteckiges Objekt in 3 Metern im linken Sichtbereich", 5000);
+            }
+        });
 
         mProcessing = new Processing(mCameraPreview);
         mProcessing.start();

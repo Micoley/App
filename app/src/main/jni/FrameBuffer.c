@@ -49,6 +49,7 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
         element[i] = buffer.data[i];
     }
      */
+
     (*env)->ReleaseShortArrayElements(env, data, element, 0);
 }
 
