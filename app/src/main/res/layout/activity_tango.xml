@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
 
 
-    <com.google.atap.tangoservice.TangoCameraPreview
+    <hfu.tango.main.mainapp.CameraRenderer
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraPreview" />

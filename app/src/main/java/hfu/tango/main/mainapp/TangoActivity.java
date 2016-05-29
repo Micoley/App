@@ -40,14 +40,13 @@ public class TangoActivity extends Activity {
     /**
      * Die View auf der das Kamerabild angezeigt wird
      */
-    private TangoCameraPreview mCameraPreview;
+    private CameraRenderer mCameraPreview;
+
+    private Processing mProcessing;
 
     static {
         System.loadLibrary("opencv_java3");
-        System.loadLibrary("framebuffer");
     }
-
-    public native void printHello();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,24 +56,25 @@ public class TangoActivity extends Activity {
 
         mOverlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
         mTango = new Tango(this);
-        mCameraPreview = (TangoCameraPreview) findViewById(R.id.cameraPreview);
+        mCameraPreview = (CameraRenderer) findViewById(R.id.cameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+        mProcessing = new Processing(mCameraPreview);
+        mProcessing.start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        mCameraPreview.connectToTangoCamera(mTango,
-                TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
-
-        printHello();
-
         try {
             connectTango();
         } catch (TangoOutOfDateException e) {
             e.printStackTrace();
         }
+
+        mCameraPreview.connectToTangoCamera(mTango,
+                TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
     }
 
     @Override
@@ -109,6 +109,7 @@ public class TangoActivity extends Activity {
         TangoConfig tangoConfig = mTango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_MOTIONTRACKING, true);
+        tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_COLORCAMERA, true);
         mTango.connect(tangoConfig);
 
         final ArrayList<TangoCoordinateFramePair> framePairs = new ArrayList<>();
