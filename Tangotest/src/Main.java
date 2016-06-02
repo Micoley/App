@@ -40,7 +40,7 @@ class Main {
 	static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); 
 	}
 	
-	public Mat getMat(BufferedImage img){
+	private Mat getMat(BufferedImage img){
 		Mat m = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC3);
 		byte[] pixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
 		m.put(0, 0, pixels);
@@ -51,6 +51,7 @@ class Main {
 	public List<Rectangle> contours(Mat m1){
 		List<MatOfPoint> contours;
 		List<Rectangle> output = new ArrayList<Rectangle>();
+		List<Rectangle> output2 = new ArrayList<Rectangle>();
 		Mat hierarchy = new Mat();
 		Mat m = m1.clone();
 
@@ -61,36 +62,38 @@ class Main {
 		Imgproc.cvtColor(m, m, Imgproc.COLOR_GRAY2BGR);
 		if (hierarchy.size().height > 0 && hierarchy.size().width > 0){
 			for (int idx = 0; idx >= 0; idx = (int) hierarchy.get(0, idx)[0]){
-				int up = m.width();
-				int down = 0;
-				int left = 0;
-				int right = m.height();
+				int left = m.width();
+				int right = 0;
+				int up = 0;
+				int down = m.height();
 				for (int y = 0; y < contours.get(idx).total(); y++) { 
 					for (int z = 0; z < contours.get(idx).cols(); z++) {
 						double[] vec = contours.get(idx).get(y, z);
-				        if(vec[0] < up) up = (int) vec[0];
-				        if(vec[0] > down) down = (int) vec[0];
-				        if(vec[1] < right) right = (int) vec[1];
-				        if(vec[1] > left) left = (int) vec[1];
-				        //System.out.print(vec[0] + " " + vec[1]);
+				        if(vec[0] < left) left = (int) vec[0];
+				        if(vec[0] > right) right = (int) vec[0];
+				        if(vec[1] < down) down = (int) vec[1];
+				        if(vec[1] > up) up = (int) vec[1];
 					}
 				}
-				//if(down - up + left - right > 300){
-					double [] rec = {up, left, up, right, down, right, down, left};
+				if((right - left) * (up - down) > 100){
+					double [] rec = {left, up, left, down, right, down, right, up};
 					output.add(new Rectangle(rec));
 					//Ausgabe
-					int a = (int)(Math.random()*255);
-					int b = (int)(Math.random()*255);
-					int c = (int)(Math.random()*255);
 					Imgproc.drawContours(m, contours, idx, new Scalar(0, 0, 255), 1);
-					Imgproc.rectangle(m, new Point(up, left), new Point(down, right), new Scalar(0, 255, 0), 1);
-				//}
+				}
 			}
+		}
+		System.out.println(output.size());
+		output2 = filter(output);
+		System.out.println(output2.size());
+		for(Rectangle a : output2){
+			Point[] p = a.getPoints();
+			Imgproc.rectangle(m, p[0], p[2], new Scalar(0, 255, 0), 1);
 		}
 		try {
 			ImageIO.write(getImage(m, ".jpg"), "jpg", new File("saved.jpg"));
 		} catch (IOException e) {}
-		return output;
+		return output2;
 	}
 	
 	public List<Rectangle> houghLinesP(Mat m1){
@@ -98,12 +101,20 @@ class Main {
 		Mat lines = new Mat();
 		Mat m = m1.clone();
 		
+//		Mat m2 = m.clone();
+//		m.convertTo(m2, CvType.CV_32FC1);
+//		Imgproc.Laplacian(m, m2, 5);
+//		m2.convertTo(m, CvType.CV_8UC1);
+		
 		Imgproc.Canny(m, m, 150, 450);
 		
 		Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
-		Imgproc.threshold(m, m, 1, 255, Imgproc.THRESH_BINARY);
+		Imgproc.threshold(m, m, 127, 255, Imgproc.THRESH_BINARY);
 		
-		Imgproc.HoughLinesP(m, lines, 1, Math.PI/180, 50, 80, 20);
+		Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
+		Imgproc.threshold(m, m, 0, 127, Imgproc.THRESH_BINARY);
+		
+		Imgproc.HoughLinesP(m, lines, 1, Math.PI/180, 80, 100, 20);
 		double maxDistance = 10;
 		double minAngle = 40;
 		//Ausgabe
@@ -221,6 +232,79 @@ class Main {
 			return Math.acos(((bx-ax)*(bx-cx)+(by-ay)*(by-cy))/(Math.sqrt(Math.pow(bx-ax,2)+Math.pow(by-ay,2))*Math.sqrt(Math.pow(bx-cx,2)+Math.pow(by-cy,2))))*(180/Math.PI);
 		}
 		return 0;
+	}
+	
+	private List<Rectangle> filter(List<Rectangle> list){
+		List<Rectangle> res1 = new ArrayList<Rectangle>();
+		List<Rectangle> res2 = new ArrayList<Rectangle>();
+		boolean flag = true;
+		for(Rectangle a : list){
+			res1.add(a);
+		}
+		for(Rectangle a : list){
+			res2.add(a);
+		}
+		while(flag){
+			res1.clear();
+			for(Rectangle x : res2){
+				res1.add(x);
+			}
+			res2.clear();
+			for(Rectangle x : res1){
+				res2.add(x);
+			}
+			flag = false;
+			for(Rectangle a : res1){
+				Point[] aa = a.getPoints();
+				double areaA = (aa[2].x - aa[0].x) * (aa[0].y - aa[2].y);
+				for(Rectangle b : res1){
+					if(!a.compare(b)){
+						Point[] bb = b.getPoints();
+						double areaB = (bb[2].x - bb[0].x) * (bb[0].y - bb[2].y);
+						if(aa[2].x > bb[0].x && aa[0].x < bb[2].x && aa[2].y < bb[0].y && aa[0].y > bb[2].y){
+							Point upleft1 = new Point(aa[0].x, aa[0].y);
+							Point downright1 = new Point(aa[2].x, aa[2].y);
+							Point upleft2 = new Point(bb[0].x, bb[0].y);
+							Point downright2 = new Point(bb[2].x, bb[2].y);
+							if(aa[0].x < bb[0].x){
+								upleft1.x = bb[0].x;
+								upleft2.x = aa[0].x;
+							}
+							if(aa[0].y > bb[0].y){
+								upleft1.y = bb[0].y;
+								upleft2.y = aa[0].y;
+							}
+							if(aa[2].x > bb[2].x){
+								downright1.x = bb[2].x;
+								downright2.x = aa[2].x;
+							}
+							if(aa[2].y < bb[2].y){
+								downright1.y = bb[2].y;
+								downright2.y = aa[2].y;
+							}
+							double areaC = (downright1.x - upleft1.x) * (upleft1.y - downright1.y);
+							if(areaC*2 > areaA || areaC*2 > areaB){
+								
+								Rectangle r = new Rectangle(new double[]{upleft2.x, upleft2.y, downright2.x, upleft2.y, downright2.x, downright2.y, upleft2.x, downright2.y});
+								res2.remove(a);
+								res2.remove(b);
+								boolean add = true;
+								for(Rectangle x : res2){
+									if(x.compare(r))
+										add = false;
+								}
+								if(add){
+									res2.add(r);
+									System.out.println("check");
+								}
+								flag = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return res2;
 	}
 	
 	public static void main(String[] args) {
