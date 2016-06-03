@@ -43,6 +43,7 @@ class Main {
 	private Mat getMat(BufferedImage img){
 		Mat m = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC3);
 		byte[] pixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+		System.out.println(pixels[126]);
 		m.put(0, 0, pixels);
 		Imgproc.cvtColor(m, m, Imgproc.COLOR_BGR2GRAY);
 		return m;
