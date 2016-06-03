@@ -45,5 +45,4 @@ public class CameraRenderer extends TangoCameraPreview {
             getLatestBufferData(mImageBuffer);
         return mImageBuffer;
     }
-
 }
