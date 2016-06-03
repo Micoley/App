@@ -9,20 +9,25 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
-const TangoImageBuffer *latest = NULL;
+#define BUFFER_SIZE 1280 * 720 * 1.5
+
+uint8_t *latest = NULL;
+int lock = 0;
 
 void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *buffer) {
-    latest = buffer;
+    // kopieren in eigenen Speicherplatz (der andere wird warsch. freigegeben)
+    if(!lock)
+        memcpy(latest, buffer->data, BUFFER_SIZE);
 }
 
 JNIEXPORT void JNICALL
 Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobject job,
                                                                jobject imageBuffer) {
+    lock = 1;
     if (latest == NULL) {
         LOGE("onFrameAvailable() was not called yet");
         return;
     }
-    TangoImageBuffer buffer = *latest;
     // Hole die Referenz auf die Java TangoImageBuffer Klasse
     jclass cls = (*env)->GetObjectClass(env, imageBuffer);
     // Hole die ID des data Attributs ([S = short array)
@@ -41,16 +46,13 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
     // get the first element
     jshort *element = (*env)->GetShortArrayElements(env, data, 0);
 
-    /*
-    int size = 1280 * 720;
-
     int i;
-    for(i = 0; i < 100; ++i) {
-        element[i] = buffer.data[i];
+    for(i = 0; i < BUFFER_SIZE; ++i) {
+        element[i] = latest[i];
     }
-     */
 
     (*env)->ReleaseShortArrayElements(env, data, element, 0);
+    lock = 0;
 }
 
 JNIEXPORT void JNICALL
@@ -64,5 +66,7 @@ Java_hfu_tango_main_mainapp_CameraRenderer_setup(JNIEnv *env, jobject jobj) {
         LOGE("Error connecting color frame %d", ret);
         //return ret;
     }
+
+    latest = malloc(sizeof(uint8_t) * BUFFER_SIZE);
 
 }
