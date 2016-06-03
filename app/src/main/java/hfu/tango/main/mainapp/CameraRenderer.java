@@ -15,25 +15,34 @@ public class CameraRenderer extends TangoCameraPreview {
         System.loadLibrary("framebuffer");
     }
 
-    private native void setup();
+    private native void setupFramebuffer();
+
+    private native void destroyFramebuffer();
 
     private native void getLatestBufferData(TangoImageBuffer imageBuffer);
 
     public CameraRenderer(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        mImageBuffer = new TangoImageBuffer();
-
-        setup();
     }
 
     @Override
     public void connectToTangoCamera(Tango tango, int cameraId) {
         super.connectToTangoCamera(tango, cameraId);
+        mImageBuffer = new TangoImageBuffer();
+        setupFramebuffer();
+    }
+
+
+    @Override
+    public void disconnectFromTangoCamera() {
+        super.disconnectFromTangoCamera();
+        mImageBuffer = null;
+        destroyFramebuffer();
     }
 
     public TangoImageBuffer getLatestBufferData() {
-        getLatestBufferData(mImageBuffer);
+        if(mImageBuffer != null)
+            getLatestBufferData(mImageBuffer);
         return mImageBuffer;
     }
 

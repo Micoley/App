@@ -9,13 +9,14 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
+// YV12-Datenformat (4:2:0) => Auflösung * 1.5
 #define BUFFER_SIZE 1280 * 720 * 1.5
 
-uint8_t *latest = NULL;
-int lock = 0;
+static uint8_t *latest = NULL;
+static int lock = 0;
 
 void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *buffer) {
-    // kopieren in eigenen Speicherplatz (der andere wird warsch. freigegeben)
+
     if(!lock)
         memcpy(latest, buffer->data, BUFFER_SIZE);
 }
@@ -23,11 +24,14 @@ void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *b
 JNIEXPORT void JNICALL
 Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobject job,
                                                                jobject imageBuffer) {
+    // Locke den buffer, falls neue Daten kommenen während die Alten kopiert werden
     lock = 1;
+
     if (latest == NULL) {
         LOGE("onFrameAvailable() was not called yet");
         return;
     }
+
     // Hole die Referenz auf die Java TangoImageBuffer Klasse
     jclass cls = (*env)->GetObjectClass(env, imageBuffer);
     // Hole die ID des data Attributs ([S = short array)
@@ -43,9 +47,10 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
         return;
     }
 
-    // get the first element
+    // Hole den Zeiger auf das erste Element
     jshort *element = (*env)->GetShortArrayElements(env, data, 0);
 
+    // Kopiere den aktuellen Buffer in das Java-Array
     int i;
     for(i = 0; i < BUFFER_SIZE; ++i) {
         element[i] = latest[i];
@@ -56,17 +61,24 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_hfu_tango_main_mainapp_CameraRenderer_setup(JNIEnv *env, jobject jobj) {
+Java_hfu_tango_main_mainapp_CameraRenderer_setupFramebuffer(JNIEnv *env, jobject jobj) {
 
     int ret;
 
+    // Registriere den onFrameAvailable-Callback
     ret = TangoService_connectOnFrameAvailable(TANGO_CAMERA_COLOR, NULL, onFrameAvailable);
 
-    if (ret != TANGO_SUCCESS) {
+    if(ret == TANGO_SUCCESS) {
+        LOGD("native onFrameAvailable connected");
+        latest = malloc(sizeof(uint8_t) * BUFFER_SIZE);
+        LOGD("native frameBuffer created");
+    } else {
         LOGE("Error connecting color frame %d", ret);
-        //return ret;
     }
+}
 
-    latest = malloc(sizeof(uint8_t) * BUFFER_SIZE);
-
+JNIEXPORT void JNICALL
+Java_hfu_tango_main_mainapp_CameraRenderer_destroyFramebuffer(JNIEnv *env, jobject jobj) {
+    free(latest);
+    LOGD("native frameBuffer destroyed");
 }

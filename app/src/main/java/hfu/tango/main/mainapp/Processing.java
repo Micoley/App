@@ -1,14 +1,14 @@
 package hfu.tango.main.mainapp;
 
 
-import android.util.Log;
-
 public class Processing extends Thread {
     private final CameraRenderer mCameraRenderer;
     private TangoImageBuffer mImageBuffer;
+    private OpenCvComponentInterface mObjectDetection;
 
     public Processing(CameraRenderer cameraRenderer) {
         mCameraRenderer = cameraRenderer;
+        mObjectDetection = new ObjectDetection();
     }
 
     @Override
@@ -20,7 +20,10 @@ public class Processing extends Thread {
                 e.printStackTrace();
             }
             mImageBuffer = mCameraRenderer.getLatestBufferData();
-            Log.d("HFU_DEBUG", String.valueOf(mImageBuffer.data[0]));
+            if(mImageBuffer != null) {
+                // Umwandlung & Aufruf von objectDetection
+
+            }
         }
     }
 }
