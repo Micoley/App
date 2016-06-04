@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
     compileSdkVersion 23
@@ -27,11 +28,37 @@ android {
 task buildNative(type: Exec, description: 'Compile JNI source via NDK') {
     def ndkDir = android.ndkDirectory
 
-    commandLine "$ndkDir\\ndk-build.cmd",
-            '-C', file('src/main/jni').absolutePath,
-            '-j', Runtime.runtime.availableProcessors(),
-            'all'
+    if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine "$ndkDir\\ndk-build.cmd",
+                '-C', file('src/main/jni').absolutePath,
+                '-j', Runtime.runtime.availableProcessors(),
+                'all'
+    }
+    if(Os.isFamily(Os.FAMILY_UNIX)) {
+        commandLine "$ndkDir/ndk-build",
+                '-C', file('src/main/jni').absolutePath,
+                '-j', Runtime.runtime.availableProcessors(),
+                'all'
+    }
 }
+
+task cleanNative(type: Exec, description: 'Clean JNI object files') {
+    def ndkDir = android.ndkDirectory
+
+    if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine "$ndkDir\\ndk-build.cmd",
+                '-C', file('src/main/jni').absolutePath,
+                'clean'
+    }
+    if(Os.isFamily(Os.FAMILY_UNIX)) {
+        commandLine "$ndkDir/ndk-build",
+                '-C', file('src/main/jni').absolutePath,
+                'clean'
+    }
+
+}
+
+clean.dependsOn 'cleanNative'
 
 tasks.withType(JavaCompile) {
     compileTask -> compileTask.dependsOn buildNative
