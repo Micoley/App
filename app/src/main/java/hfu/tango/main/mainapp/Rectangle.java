@@ -28,11 +28,13 @@ public class Rectangle {
         return r;
     }
 
-    public void print(){
+    @Override
+    public String toString() {
+        String s = "";
         for(Point p : points){
-            System.out.print(p.x+" "+p.y+"\t");
+            s += p.x + " " + p.y + "\t";
         }
-        System.out.println();
+        return s;
     }
 
     public boolean compare(Rectangle r){
