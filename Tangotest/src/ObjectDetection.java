@@ -6,8 +6,9 @@ import org.opencv.core.Point;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-
 public class ObjectDetection { //implements OpenCVComponentInterface
+	
+	//Sucht Konturen und gibt umschließende Rechtecke zurück
 	public List<Rectangle> contours(Mat m1){
 		List<MatOfPoint> contours;
 		List<Rectangle> output = new ArrayList<Rectangle>();
@@ -15,11 +16,14 @@ public class ObjectDetection { //implements OpenCVComponentInterface
 		Mat hierarchy = new Mat();
 		Mat m = m1.clone();
 
+		//Kontrastlinien finden
 		Imgproc.Canny(m, m, 150, 450);
-	 
+	 	
+	 	//Konturen suchen
 		contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(m.clone(), contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		Imgproc.cvtColor(m, m, Imgproc.COLOR_GRAY2BGR);
+
+		//Rechtecke berechnen
 		if (hierarchy.size().height > 0 && hierarchy.size().width > 0){
 			for (int idx = 0; idx >= 0; idx = (int) hierarchy.get(0, idx)[0]){
 				int left = m.width();
@@ -41,21 +45,31 @@ public class ObjectDetection { //implements OpenCVComponentInterface
 				}
 			}
 		}
+		//Überlappende Rechtecke vereinigen
 		output2 = filter(output);
 		return output2;
 	}
 	
+	
+	//Rechtecke in Bild finden
 	public List<Rectangle> houghLinesP(Mat m1){
 		List<Rectangle> rec = new ArrayList<Rectangle>();
+		List<Rectangle> output = new ArrayList<Rectangle>();
 		Mat lines = new Mat();
 		Mat m = m1.clone();
 		
+		//Kontrastlinien suchen
 		Imgproc.Canny(m, m, 150, 450);
 		
+		//Linien begradigen
 		Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
 		Imgproc.threshold(m, m, 1, 255, Imgproc.THRESH_BINARY);
 		
+		
+		//gerade Linien raussuchen
 		Imgproc.HoughLinesP(m, lines, 1, Math.PI/180, 50, 80, 20);
+		
+		//Aus geraden Linien Vierecke erstellen
 		double maxDistance = 10;
 		double minAngle = 30;
 		List<double[]> twoLines = new ArrayList<double[]>();
@@ -148,13 +162,17 @@ public class ObjectDetection { //implements OpenCVComponentInterface
 				}
 			}
 		}
+		//überlappende Rechtecke vereinigen
+		output = filter(rec);
 		return rec;
 	}
 	
+	//Abstand von 2 Punkten berechnen
 	private double distance(double ax, double ay, double bx, double by){
 		return Math.sqrt(Math.pow(ax-bx,2)+Math.pow(ay-by,2));
 	}
 	
+	//Winkel von 3 Punkten berechnen
 	private double angle(double ax, double ay, double bx, double by, double cx, double cy){
 		if((Math.sqrt(Math.pow(bx-ax,2)+Math.pow(by-ay,2))*Math.sqrt(Math.pow(bx-cx,2)+Math.pow(by-cy,2)))*(180/Math.PI) > 0){
 			return Math.acos(((bx-ax)*(bx-cx)+(by-ay)*(by-cy))/(Math.sqrt(Math.pow(bx-ax,2)+Math.pow(by-ay,2))*Math.sqrt(Math.pow(bx-cx,2)+Math.pow(by-cy,2))))*(180/Math.PI);
@@ -162,6 +180,7 @@ public class ObjectDetection { //implements OpenCVComponentInterface
 		return 0;
 	}
 	
+	//überlappende REchtecke vereinigen
 	private List<Rectangle> filter(List<Rectangle> list){
 		List<Rectangle> res1 = new ArrayList<Rectangle>();
 		List<Rectangle> res2 = new ArrayList<Rectangle>();
