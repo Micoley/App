@@ -3,6 +3,7 @@ import org.opencv.core.Point;
 public class Rectangle {
 	Point[] points;
 	
+	//Übergabe = 4 Punkte als double[] in der Form x1, y1, x2, y2, ...
 	public Rectangle(double[] p){
 		points = new Point[4];
 		for(int i = 0; i < 4; i++){
@@ -20,12 +21,14 @@ public class Rectangle {
 		}
 	}
 	
+	//Gibt 4 Punkte zurück
 	public Point[] getPoints(){
 		Point[] r = new Point[4];
 		r = points.clone();
 		return r;
 	}
 	
+	//Ausgabe der Punkte, nur für Tests
 	public void print(){
 		for(Point p : points){
 			System.out.print(p.x+" "+p.y+"\t");
@@ -33,6 +36,7 @@ public class Rectangle {
 		System.out.println();
 	}
 	
+	//vergleicht alle 4 Punkte eines Rechtecks (Reihenfolge der Punkte wichtig)
 	public boolean compare(Rectangle r){
 		Point[] p = r.getPoints();
 		return (p[0].x == points[0].x && p[0].y == points[0].y 
