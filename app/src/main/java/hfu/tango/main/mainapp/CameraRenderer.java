@@ -7,9 +7,11 @@ import android.util.AttributeSet;
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.TangoCameraPreview;
 
+import org.opencv.core.Mat;
+
 
 public class CameraRenderer extends TangoCameraPreview {
-    private TangoImageBuffer mImageBuffer;
+    private Mat latestMat;
 
     static {
         System.loadLibrary("native");
@@ -19,16 +21,16 @@ public class CameraRenderer extends TangoCameraPreview {
 
     private native void destroyFramebuffer();
 
-    private native void getLatestBufferData(TangoImageBuffer imageBuffer);
+    private native void getLatestBufferData(long addr);
 
     public CameraRenderer(Context context, AttributeSet attrs) {
         super(context, attrs);
+        latestMat = new Mat();
     }
 
     @Override
     public void connectToTangoCamera(Tango tango, int cameraId) {
         super.connectToTangoCamera(tango, cameraId);
-        mImageBuffer = new TangoImageBuffer();
         setupFramebuffer();
     }
 
@@ -36,13 +38,11 @@ public class CameraRenderer extends TangoCameraPreview {
     @Override
     public void disconnectFromTangoCamera() {
         super.disconnectFromTangoCamera();
-        mImageBuffer = null;
         destroyFramebuffer();
     }
 
-    public TangoImageBuffer getLatestBufferData() {
-        if(mImageBuffer != null);
-            getLatestBufferData(mImageBuffer);
-        return mImageBuffer;
+    public Mat getLatestBufferData() {
+        getLatestBufferData(latestMat.getNativeObjAddr());
+        return latestMat;
     }
 }

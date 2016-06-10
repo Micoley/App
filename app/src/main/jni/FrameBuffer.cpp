@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <tango_client_api.h>
-
+#include <opencv/cv.hpp>
 
 
 #define LOG_TAG "HFU_DEBUG"
@@ -24,9 +24,17 @@ void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *b
         memcpy(latest, buffer->data, BUFFER_SIZE);
 }
 
+cv::Mat createMatfromYV12(uint8_t *yv12DataBuffer) {
+    cv::Mat picYV12 = cv::Mat(720 * 3 / 2, 1280, CV_8UC1, yv12DataBuffer);
+    cv::imwrite("/storage/emulated/0/Download/yv12_test.bmp", picYV12);
+    cv::Mat picBGR;
+    cv::cvtColor(picYV12, picBGR, CV_YUV2BGR_YV12);
+    return picBGR;
+}
+
 JNIEXPORT void JNICALL
 Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobject job,
-                                                               jobject imageBuffer) {
+                                                               jlong matPtr) {
     // Locke den buffer, falls neue Daten kommenen während die Alten kopiert werden
     lock = 1;
 
@@ -35,31 +43,13 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
         return;
     }
 
-    // Hole die Referenz auf die Java TangoImageBuffer Klasse
-    jclass cls = env->GetObjectClass(imageBuffer);
-    // Hole die ID des data Attributs ([S = short array)
-    jfieldID fid = env->GetFieldID(cls, "data", "[S");
-    if (fid == NULL) {
-        LOGE("Error getting the Latest Buffer data");
-        return;
-    }
+    cv::Mat *mat = (cv::Mat *) matPtr;
 
-    jshortArray data = (jshortArray) env->GetObjectField(imageBuffer, fid);
-    if (data == NULL) {
-        LOGE("Error getting the Latest Buffer data");
-        return;
-    }
 
-    // Hole den Zeiger auf das erste Element
-    jshort *element = (jshort *) env->GetShortArrayElements(data, 0);
+    cv::Mat bgr = createMatfromYV12(latest);
 
-    // Kopiere den aktuellen Buffer in das Java-Array
-    int i;
-    for (i = 0; i < BUFFER_SIZE; ++i) {
-        element[i] = latest[i];
-    }
+    *mat = bgr;
 
-    env->ReleaseShortArrayElements(data, element, 0);
     lock = 0;
 }
 
