@@ -1,7 +1,6 @@
 #include <android/log.h>
 #include <jni.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <tango_client_api.h>
 
@@ -14,12 +13,14 @@
 // YV12-Datenformat (4:2:0) => Auflösung * 1.5
 #define BUFFER_SIZE 1280 * 720 * 1.5
 
+extern "C" {
+
 static uint8_t *latest = NULL;
 static int lock = 0;
 
 void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *buffer) {
 
-    if(!lock)
+    if (!lock)
         memcpy(latest, buffer->data, BUFFER_SIZE);
 }
 
@@ -35,30 +36,30 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
     }
 
     // Hole die Referenz auf die Java TangoImageBuffer Klasse
-    jclass cls = (*env)->GetObjectClass(env, imageBuffer);
+    jclass cls = env->GetObjectClass(imageBuffer);
     // Hole die ID des data Attributs ([S = short array)
-    jfieldID fid = (*env)->GetFieldID(env, cls, "data", "[S");
+    jfieldID fid = env->GetFieldID(cls, "data", "[S");
     if (fid == NULL) {
         LOGE("Error getting the Latest Buffer data");
         return;
     }
 
-    jshortArray data = (*env)->GetObjectField(env, imageBuffer, fid);
+    jshortArray data = (jshortArray) env->GetObjectField(imageBuffer, fid);
     if (data == NULL) {
         LOGE("Error getting the Latest Buffer data");
         return;
     }
 
     // Hole den Zeiger auf das erste Element
-    jshort *element = (*env)->GetShortArrayElements(env, data, 0);
+    jshort *element = (jshort *) env->GetShortArrayElements(data, 0);
 
     // Kopiere den aktuellen Buffer in das Java-Array
     int i;
-    for(i = 0; i < BUFFER_SIZE; ++i) {
+    for (i = 0; i < BUFFER_SIZE; ++i) {
         element[i] = latest[i];
     }
 
-    (*env)->ReleaseShortArrayElements(env, data, element, 0);
+    env->ReleaseShortArrayElements(data, element, 0);
     lock = 0;
 }
 
@@ -70,9 +71,9 @@ Java_hfu_tango_main_mainapp_CameraRenderer_setupFramebuffer(JNIEnv *env, jobject
     // Registriere den onFrameAvailable-Callback
     ret = TangoService_connectOnFrameAvailable(TANGO_CAMERA_COLOR, NULL, onFrameAvailable);
 
-    if(ret == TANGO_SUCCESS) {
+    if (ret == TANGO_SUCCESS) {
         LOGD("native onFrameAvailable connected");
-        latest = malloc(sizeof(uint8_t) * BUFFER_SIZE);
+        latest = (uint8_t *) malloc(sizeof(uint8_t) * BUFFER_SIZE);
         LOGD("native frameBuffer created");
     } else {
         LOGE("Error connecting color frame %d", ret);
@@ -83,4 +84,6 @@ JNIEXPORT void JNICALL
 Java_hfu_tango_main_mainapp_CameraRenderer_destroyFramebuffer(JNIEnv *env, jobject jobj) {
     free(latest);
     LOGD("native frameBuffer destroyed");
+}
+
 }

@@ -12,7 +12,7 @@ public class CameraRenderer extends TangoCameraPreview {
     private TangoImageBuffer mImageBuffer;
 
     static {
-        System.loadLibrary("framebuffer");
+        System.loadLibrary("native");
     }
 
     private native void setupFramebuffer();
@@ -41,7 +41,7 @@ public class CameraRenderer extends TangoCameraPreview {
     }
 
     public TangoImageBuffer getLatestBufferData() {
-        if(mImageBuffer != null)
+        if(mImageBuffer != null);
             getLatestBufferData(mImageBuffer);
         return mImageBuffer;
     }
