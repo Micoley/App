@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class Processing extends Thread {
-    private final CameraRenderer mCameraRenderer;
+    private final CameraPreview mCameraRenderer;
     private Mat mImageBuffer;
     private FloatBuffer buffer;
     private ArrayList<Rectangle> rectangles;
@@ -21,7 +21,7 @@ public class Processing extends Thread {
     private float warningDistance = 0.50f;
     private long timeOld = 0;
 
-    public Processing(CameraRenderer cameraRenderer, TextToSpeech textToSpeech) {
+    public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech) {
         mCameraRenderer = cameraRenderer;
         this.textToSpeech = textToSpeech;
         warnings = new TreeSet<String>() {

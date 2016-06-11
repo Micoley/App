@@ -8,14 +8,12 @@ import android.view.WindowManager;
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
-import com.google.atap.tangoservice.TangoCameraPreview;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoErrorException;
 import com.google.atap.tangoservice.TangoEvent;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
-import com.google.atap.tangoservice.TangoTextureCameraPreview;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
 import java.util.ArrayList;
@@ -41,7 +39,7 @@ public class TangoActivity extends Activity {
     /**
      * Die View auf der das Kamerabild angezeigt wird
      */
-    private CameraRenderer mCameraPreview;
+    private CameraPreview mCameraPreview;
 
     private Processing mProcessing;
 
@@ -59,7 +57,7 @@ public class TangoActivity extends Activity {
 
         mOverlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
         mTango = new Tango(this);
-        mCameraPreview = (CameraRenderer) findViewById(R.id.cameraPreview);
+        mCameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
 
         mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {

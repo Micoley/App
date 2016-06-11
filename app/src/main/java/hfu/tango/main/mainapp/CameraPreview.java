@@ -1,6 +1,5 @@
 package hfu.tango.main.mainapp;
 
-
 import android.content.Context;
 import android.util.AttributeSet;
 
@@ -9,10 +8,15 @@ import com.google.atap.tangoservice.TangoCameraPreview;
 
 import org.opencv.core.Mat;
 
+/**
+ * TangoCameraPreview die zur Anzeige des Kamerabildes und als Interface für benoetigte
+ * OpenCV-Bilddaten benutzt wird
+ */
+public class CameraPreview extends TangoCameraPreview {
 
-public class CameraRenderer extends TangoCameraPreview {
-    private Mat latestMat;
-
+    /**
+     * laedt die native Bibliothek und erlaubt den Zugriff auf dessen Funktionen
+     */
     static {
         System.loadLibrary("native");
     }
@@ -21,11 +25,15 @@ public class CameraRenderer extends TangoCameraPreview {
 
     private native void destroyFramebuffer();
 
+    /**
+     * Holt die letzten verfuegbaren Bilddaten
+     * @param addr die Speicheradresse der Matrix in die, die
+     *             verfuegbaren Bilddaten gespeichert werden
+     */
     private native void getLatestBufferData(long addr);
 
-    public CameraRenderer(Context context, AttributeSet attrs) {
+    public CameraPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
-        latestMat = new Mat();
     }
 
     @Override
@@ -41,8 +49,13 @@ public class CameraRenderer extends TangoCameraPreview {
         destroyFramebuffer();
     }
 
+    /**
+     * Holt die letzten verfuegbaren Bilddaten der Tango-API
+     * @return die Bilddaten als OpenCV-Matrix
+     */
     public Mat getLatestBufferData() {
-        getLatestBufferData(latestMat.getNativeObjAddr());
-        return latestMat;
+        Mat buffer = new Mat();
+        getLatestBufferData(buffer.getNativeObjAddr());
+        return buffer;
     }
 }

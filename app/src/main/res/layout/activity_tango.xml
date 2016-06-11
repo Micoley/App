@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <hfu.tango.main.mainapp.CameraRenderer
+    <hfu.tango.main.mainapp.CameraPreview
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraPreview" />

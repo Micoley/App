@@ -6,7 +6,7 @@
 #include <opencv/cv.hpp>
 
 
-#define LOG_TAG "HFU_DEBUG"
+#define LOG_TAG "HFU_DEBUG_NATIVE"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
@@ -27,7 +27,7 @@ void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *b
         memcpy(latest, buffer->data, BUFFER_SIZE);
 }
 
-cv::Mat createMatfromYV12(uint8_t *yv12DataBuffer) {
+cv::Mat createMatFromYV12(uint8_t *yv12DataBuffer) {
     unsigned char* rgb_img = new unsigned char[width * height * 3];
     cv::Mat picNew = cv::Mat(height+height/2, width, CV_8UC1, (uchar *)yv12DataBuffer);
     cv::cvtColor(picNew, picNew, CV_YUV2RGBA_NV21);
@@ -36,20 +36,21 @@ cv::Mat createMatfromYV12(uint8_t *yv12DataBuffer) {
 }
 
 JNIEXPORT void JNICALL
-Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobject job,
+Java_hfu_tango_main_mainapp_CameraPreview_getLatestBufferData(JNIEnv *env, jobject job,
                                                                jlong matPtr) {
     // Locke den buffer, falls neue Daten kommenen während die Alten kopiert werden
     lock = 1;
 
     if (latest == NULL) {
-        LOGE("onFrameAvailable() was not called yet");
+        LOGE("framebuffer is null, call setupFramebuffer first");
+        lock = 0;
         return;
     }
 
     cv::Mat *mat = (cv::Mat *) matPtr;
 
 
-    cv::Mat bgr = createMatfromYV12(latest);
+    cv::Mat bgr = createMatFromYV12(latest);
 
     *mat = bgr;
 
@@ -57,7 +58,7 @@ Java_hfu_tango_main_mainapp_CameraRenderer_getLatestBufferData(JNIEnv *env, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_hfu_tango_main_mainapp_CameraRenderer_setupFramebuffer(JNIEnv *env, jobject jobj) {
+Java_hfu_tango_main_mainapp_CameraPreview_setupFramebuffer(JNIEnv *env, jobject jobj) {
 
     int ret;
 
@@ -65,18 +66,19 @@ Java_hfu_tango_main_mainapp_CameraRenderer_setupFramebuffer(JNIEnv *env, jobject
     ret = TangoService_connectOnFrameAvailable(TANGO_CAMERA_COLOR, NULL, onFrameAvailable);
 
     if (ret == TANGO_SUCCESS) {
-        LOGD("native onFrameAvailable connected");
+        LOGD("onFrameAvailable connected");
         latest = (uint8_t *) malloc(sizeof(uint8_t) * BUFFER_SIZE);
-        LOGD("native frameBuffer created");
+        LOGD("frameBuffer created");
     } else {
         LOGE("Error connecting color frame %d", ret);
     }
 }
 
 JNIEXPORT void JNICALL
-Java_hfu_tango_main_mainapp_CameraRenderer_destroyFramebuffer(JNIEnv *env, jobject jobj) {
+Java_hfu_tango_main_mainapp_CameraPreview_destroyFramebuffer(JNIEnv *env, jobject jobj) {
     free(latest);
-    LOGD("native frameBuffer destroyed");
+    latest = NULL;
+    LOGD("frameBuffer destroyed");
 }
 
 }
