@@ -1,10 +1,14 @@
 [
     {
+        "outputFile": "E:\\home\\jonas\\Workspace\\Android\\App\\D:\\home\\jonas\\Workspace\\Android\\App\\D:\\Workspace\\Android\\Projects\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "map": []
+    },
+    {
         "outputFile": "E:\\home\\jonas\\Workspace\\Android\\App\\D:\\home\\jonas\\Workspace\\Android\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
         "map": []
     },
     {
-        "outputFile": "E:\\ProjectTangoTest\\ctest\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "outputFile": "D:\\Workspace\\Android\\Projects\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
         "map": []
     },
     {
@@ -12,11 +16,11 @@
         "map": []
     },
     {
-        "outputFile": "E:\\home\\jonas\\Workspace\\Android\\App\\D:\\home\\jonas\\Workspace\\Android\\App\\D:\\Workspace\\Android\\Projects\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "outputFile": "E:\\home\\jonas\\Workspace\\Android\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
         "map": []
     },
     {
-        "outputFile": "E:\\home\\jonas\\Workspace\\Android\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+        "outputFile": "E:\\ProjectTangoTest\\ctest\\App\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
         "map": []
     }
 ]

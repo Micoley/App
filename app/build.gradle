@@ -1,5 +1,10 @@
 apply plugin: 'com.android.model.application'
 
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def opencvDir = properties.getProperty('opencv.dir')
+
 model {
     repositories {
         libs(PrebuiltLibraries) {
@@ -22,18 +27,11 @@ model {
             versionCode = 1
             versionName = "1.0"
         }
-        /*ndk {
-            moduleName = "framebuffer"
-            stl = "gnustl_static"
-            platformVersion = 19
-            abiFilters.add("armeabi-v7a")
-            ldLibs.add("log")
-        }*/
         ndk {
             moduleName = "native"
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
-            cppFlags.add("-I${file("C:\\OpenCV-android-sdk\\sdk\\native\\jni\\include")}".toString())
+            cppFlags.add("-I${file(opencvDir)}".toString())
             ldLibs.addAll(["android", "EGL", "GLESv2", "dl", "log", "z"])
             stl ="gnustl_shared"
         }

@@ -70,7 +70,7 @@ public class TangoActivity extends Activity {
             }
         });
 
-        mProcessing = new Processing(mCameraPreview);
+        mProcessing = new Processing(mCameraPreview, mTTS);
         mProcessing.start();
     }
 
