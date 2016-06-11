@@ -17,6 +17,9 @@ extern "C" {
 
 static uint8_t *latest = NULL;
 static int lock = 0;
+static int width = 1280;
+static int height = 720;
+
 
 void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *buffer) {
 
@@ -25,11 +28,11 @@ void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *b
 }
 
 cv::Mat createMatfromYV12(uint8_t *yv12DataBuffer) {
-    cv::Mat picYV12 = cv::Mat(720 * 3 / 2, 1280, CV_8UC1, yv12DataBuffer);
-    cv::imwrite("/storage/emulated/0/Download/yv12_test.bmp", picYV12);
-    cv::Mat picBGR;
-    cv::cvtColor(picYV12, picBGR, CV_YUV2BGR_YV12);
-    return picBGR;
+    unsigned char* rgb_img = new unsigned char[width * height * 3];
+    cv::Mat picNew = cv::Mat(height+height/2, width, CV_8UC1, (uchar *)yv12DataBuffer);
+    cv::cvtColor(picNew, picNew, CV_YUV2RGBA_NV21);
+    cv::imwrite("/storage/emulated/0/Download/rgb_test.bmp", picNew);
+    return picNew;
 }
 
 JNIEXPORT void JNICALL
