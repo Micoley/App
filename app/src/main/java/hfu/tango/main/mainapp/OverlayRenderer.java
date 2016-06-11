@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
@@ -15,7 +14,7 @@ import java.nio.FloatBuffer;
 public class OverlayRenderer extends View implements Runnable {
     private Paint paint;
     private FloatBuffer buffer;
-    private TangoCameraIntrinsics intrinsics;
+    public static TangoCameraIntrinsics intrinsics;
 
     {
         paint = new Paint();
