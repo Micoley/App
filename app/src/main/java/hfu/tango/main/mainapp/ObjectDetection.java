@@ -1,9 +1,12 @@
 package hfu.tango.main.mainapp;
 
+import android.util.Log;
+
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -18,10 +21,13 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		List<Rectangle> output = new ArrayList<Rectangle>();
 		List<Rectangle> output2 = new ArrayList<Rectangle>();
 		Mat hierarchy = new Mat();
+
 		Mat m = m1.clone();
 
+		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY);
+
 		Imgproc.Canny(m, m, 50, 150);
-		
+
 		Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
 		Imgproc.threshold(m, m, 70, 255, Imgproc.THRESH_BINARY);
 		
@@ -37,37 +43,39 @@ public class ObjectDetection implements OpenCvComponentInterface {
 	 
 		contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(m.clone(), contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		Imgproc.cvtColor(m, m, Imgproc.COLOR_GRAY2BGR);
 		if (hierarchy.size().height > 0 && hierarchy.size().width > 0){
 			for (int idx = 0; idx >= 0; idx = (int) hierarchy.get(0, idx)[0]){
 				int left = m.width();
 				int right = 0;
 				int up = 0;
 				int down = m.height();
-				for (int y = 0; y < contours.get(idx).total(); y++) { 
+				for (int y = 0; y < contours.get(idx).total(); y++) {
 					for (int z = 0; z < contours.get(idx).cols(); z++) {
 						double[] vec = contours.get(idx).get(y, z);
-				        if(vec[0] < left) left = (int) vec[0];
-				        if(vec[0] > right) right = (int) vec[0];
-				        if(vec[1] < down) down = (int) vec[1];
-				        if(vec[1] > up) up = (int) vec[1];
+						if (vec[0] < left) left = (int) vec[0];
+						if (vec[0] > right) right = (int) vec[0];
+						if (vec[1] < down) down = (int) vec[1];
+						if (vec[1] > up) up = (int) vec[1];
 					}
 				}
-				if((right - left) * (up - down) > 5000 && (right - left) * (up - down) < 1200*700){
+				if((right - left) * (up - down) > 5000) { //&&(right - left) * (up - down) < 1200*700){
 					double [] rec = {left, up, left, down, right, down, right, up};
 					output.add(new Rectangle(rec));
 				}
 			}
 		}
-		output2 = filter(output);
-		return output2;
+		//output2 = filter(output);
+		return output;
 	}
 	
 	//Viereckerkennung
+	@Override
 	public List<Rectangle> houghLinesP(Mat m1){
 		List<Rectangle> rec = new ArrayList<Rectangle>();
 		Mat lines = new Mat();
 		Mat m = m1.clone();
+
+		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY);
 		
 		Imgproc.Canny(m, m, 50, 150);
 		

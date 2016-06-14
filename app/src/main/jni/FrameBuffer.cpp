@@ -30,7 +30,7 @@ void onFrameAvailable(void *context, TangoCameraId id, const TangoImageBuffer *b
 cv::Mat createMatFromYV12(uint8_t *yv12DataBuffer) {
     unsigned char* rgb_img = new unsigned char[width * height * 3];
     cv::Mat picNew = cv::Mat(height+height/2, width, CV_8UC1, (uchar *)yv12DataBuffer);
-    cv::cvtColor(picNew, picNew, CV_YUV2RGBA_NV21);
+    cv::cvtColor(picNew, picNew, CV_YUV2RGB_NV21);
     cv::imwrite("/storage/emulated/0/Download/rgb_test.bmp", picNew);
     return picNew;
 }

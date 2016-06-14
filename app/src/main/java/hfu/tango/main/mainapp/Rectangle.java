@@ -1,9 +1,5 @@
 package hfu.tango.main.mainapp;
 
-/**
- * Created by Timo on 03.06.2016.
- */
-
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
@@ -50,6 +46,15 @@ public class Rectangle {
             System.out.print(p.x + " " + p.y + "\t");
         }
         System.out.println();
+    }
+
+    @Override
+    public String toString() {
+        String s = "";
+        for(Point p: points) {
+            s += p.x + " " + p.y + "\t";
+        }
+        return s;
     }
 
     public boolean compare(Rectangle r) {

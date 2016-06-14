@@ -64,7 +64,6 @@ public class TangoActivity extends Activity {
             @Override
             public void onInit(int status) {
                 mTTS.setLanguage(Locale.GERMAN);
-                mTTS.speakWithDelay("rechteckiges Objekt in 3 Metern im linken Sichtbereich", 5000);
             }
         });
 

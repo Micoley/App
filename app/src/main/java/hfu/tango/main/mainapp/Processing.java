@@ -8,12 +8,14 @@ import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class Processing extends Thread {
     private final CameraPreview mCameraRenderer;
     private Mat mImageBuffer;
+    private OpenCvComponentInterface mObjectDetection;
     private FloatBuffer buffer;
     private ArrayList<Rectangle> rectangles;
     private TextToSpeech textToSpeech;
@@ -23,6 +25,7 @@ public class Processing extends Thread {
 
     public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech) {
         mCameraRenderer = cameraRenderer;
+        mObjectDetection = new ObjectDetection();
         this.textToSpeech = textToSpeech;
         warnings = new TreeSet<String>() {
         };
@@ -237,8 +240,15 @@ public class Processing extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            Log.d("HFU_DEBUG", "processing aufgerufen");
             mImageBuffer = mCameraRenderer.getLatestBufferData();
-            Log.d("HFU_DEBUG", String.valueOf(mImageBuffer.dataAddr()));
+            List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
+            //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
+            Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
+
+            for(Rectangle object: objects) {
+                Log.d("HFU_DEBUG", String.valueOf(object));
+            }
         }
     }
 

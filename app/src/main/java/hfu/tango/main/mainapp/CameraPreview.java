@@ -42,7 +42,6 @@ public class CameraPreview extends TangoCameraPreview {
         setupFramebuffer();
     }
 
-
     @Override
     public void disconnectFromTangoCamera() {
         super.disconnectFromTangoCamera();

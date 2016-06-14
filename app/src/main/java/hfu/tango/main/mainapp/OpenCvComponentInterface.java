@@ -10,4 +10,6 @@ public interface OpenCvComponentInterface {
 
      List<Rectangle> contours(Mat m1);
 
+     List<Rectangle> houghLinesP(Mat m1);
+
 }
