@@ -20,8 +20,13 @@ JNIEXPORT void JNICALL
 Java_hfu_tango_main_mainapp_CameraPreview_getLatestBufferData(JNIEnv *env, jobject job,
                                                               jlong matPtr) {
     cv::Mat *mat = (cv::Mat *) matPtr;
-    cv::Mat rgb = hfu::createMatFromYV12(hfu::FrameBuffer::getLatestBuffer());
-    *mat = rgb;
+    uint8_t *buffer = hfu::FrameBuffer::getLatestBuffer();
+    if(buffer != NULL) {
+        cv::Mat rgb = hfu::createMatFromYV12(buffer);
+        *mat = rgb;
+    } else {
+        LOGE("buffer is not available (app is most likely onPause)");
+    }
 }
 
 JNIEXPORT void JNICALL

@@ -242,12 +242,14 @@ public class Processing extends Thread {
             }
             Log.d("HFU_DEBUG", "processing aufgerufen");
             mImageBuffer = mCameraRenderer.getLatestBufferData();
-            List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
-            //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
-            Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
+            if(mImageBuffer != null) {
+                List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
+                //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
+                Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
 
-            for(Rectangle object: objects) {
-                Log.d("HFU_DEBUG", String.valueOf(object));
+                for (Rectangle object : objects) {
+                    Log.d("HFU_DEBUG", String.valueOf(object));
+                }
             }
         }
     }

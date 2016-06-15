@@ -37,7 +37,7 @@ namespace hfu {
      */
     class FrameBuffer {
     private:
-        FrameBuffer() {};
+        FrameBuffer() { };
         static uint8_t *latestBuffer;
         static void onFrameAvailable(void *context, TangoCameraId id,
                                      const TangoImageBuffer *buffer);

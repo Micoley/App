@@ -27,6 +27,7 @@ public class CameraPreview extends TangoCameraPreview {
 
     /**
      * Holt die letzten verfuegbaren Bilddaten
+     *
      * @param addr die Speicheradresse der Matrix in die, die
      *             verfuegbaren Bilddaten gespeichert werden
      */
@@ -50,11 +51,12 @@ public class CameraPreview extends TangoCameraPreview {
 
     /**
      * Holt die letzten verfuegbaren Bilddaten der Tango-API
-     * @return die Bilddaten als OpenCV-Matrix
+     *
+     * @return die Bilddaten als OpenCV-Matrix oder null falls kein Buffer verfügbar ist
      */
     public Mat getLatestBufferData() {
-        Mat buffer = new Mat();
-        getLatestBufferData(buffer.getNativeObjAddr());
-        return buffer;
+        Mat mat = new Mat();
+        getLatestBufferData(mat.getNativeObjAddr());
+        return mat.empty() ? null : mat;
     }
 }

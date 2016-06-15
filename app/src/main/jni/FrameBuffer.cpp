@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include "include/FrameBuffer.h"
 
+// Kommentare sind in FrameBuffer.h
+
 namespace hfu {
 
     uint8_t *FrameBuffer::latestBuffer = NULL;
@@ -11,27 +13,32 @@ namespace hfu {
         return mat;
     }
 
-
     void FrameBuffer::onFrameAvailable(void *context, TangoCameraId id,
                                        const TangoImageBuffer *buffer) {
         memcpy(FrameBuffer::latestBuffer, buffer->data, BUFFER_SIZE);
     }
 
-
     void FrameBuffer::setup() {
         int ret = TangoService_connectOnFrameAvailable(TANGO_CAMERA_COLOR, NULL, onFrameAvailable);
         if (ret == TANGO_SUCCESS) {
             LOGD("onFrameAvailable connected");
-            FrameBuffer::latestBuffer = new uint8_t[BUFFER_SIZE];
+            if (FrameBuffer::latestBuffer == NULL) {
+                FrameBuffer::latestBuffer = new uint8_t[BUFFER_SIZE];
+            } else {
+                LOGE("frameBuffer is already initialized");
+            }
         } else {
             LOGE("Error connecting color frame %d", ret);
         }
     }
 
     void FrameBuffer::destroy() {
-        delete[] latestBuffer;
-        FrameBuffer::latestBuffer = NULL;
-        LOGD("frameBuffer destroyed");
+        if (FrameBuffer::latestBuffer != NULL) {
+            delete[] FrameBuffer::latestBuffer;
+            FrameBuffer::latestBuffer = NULL;
+            LOGD("frameBuffer destroyed");
+        }
+        LOGE("frameBuffer was not initialized");
     }
 
     uint8_t *FrameBuffer::getLatestBuffer() {
