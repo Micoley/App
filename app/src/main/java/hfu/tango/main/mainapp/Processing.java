@@ -27,13 +27,12 @@ public class Processing extends Thread {
         mCameraRenderer = cameraRenderer;
         mObjectDetection = new ObjectDetection();
         this.textToSpeech = textToSpeech;
-        warnings = new TreeSet<String>() {
-        };
+        warnings = new TreeSet<String>() {};
     }
 
     public void update(FloatBuffer buffer) {
         this.buffer = buffer;
-        //this.rectangles = rectangles;
+        // this.rectangles = rectangles;
         // mapPointsToObjects();
         if (System.currentTimeMillis() > timeOld + 5000) {
             timeOld = System.currentTimeMillis();

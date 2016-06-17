@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
@@ -46,10 +47,10 @@ public class OverlayRenderer extends View implements Runnable {
         float fy = (float) intrinsics.fy;
         float cx = (float) intrinsics.cx;
         float cy = (float) intrinsics.cy;
-        float w = (float) intrinsics.width;
-        float h = (float) intrinsics.height;
+        float w  = (float) intrinsics.width;
+        float h  = (float) intrinsics.height;
 
-        for (int i = 0, j = 0; i < buffer.capacity(); i += 3, j += 2) {
+        for (int i = 0, j = 0; i <= buffer.capacity() - 3; i += 3, j += 2) {
             float x = buffer.get(i);
             float y = buffer.get(i + 1);
             float z = buffer.get(i + 2);
@@ -66,9 +67,11 @@ public class OverlayRenderer extends View implements Runnable {
      */
 
     private int zToColor(float z){
-        int R = (int)(255 * z) / 5;
-        int G = (int)(255 * (5 - z)) / 5;
-        return  Color.rgb(R,G,0);
+        double y = Math.log(z + 1) / 1.8;
+        Log.d("HFU_DEBUG", String.valueOf(y));
+        int r = (int) (y * 255);
+        int g = 255 - ((int) (y * 255));
+        return  Color.rgb(r,g,Math.abs(r-g));
     }
 
     @Override
