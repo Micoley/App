@@ -11,8 +11,11 @@ import android.view.View;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
 
 import java.nio.FloatBuffer;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class OverlayRenderer extends View implements Runnable {
+    private ColorMapper colorMapper = new ColorMapper(0, 5, 100);
     private Paint paint;
     private FloatBuffer buffer;
     public static TangoCameraIntrinsics intrinsics;
@@ -67,16 +70,14 @@ public class OverlayRenderer extends View implements Runnable {
      */
 
     private int zToColor(float z){
-        double y = Math.log(z + 1) / 1.8;
-        Log.d("HFU_DEBUG", String.valueOf(y));
-        int r = (int) (y * 255);
-        int g = 255 - ((int) (y * 255));
-        return  Color.rgb(r,g,Math.abs(r-g));
+        return colorMapper.mapToColor(z);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+
 
         if (buffer != null) {
             drawPointBuffer(canvas);

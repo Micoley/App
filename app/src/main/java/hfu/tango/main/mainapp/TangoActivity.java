@@ -60,6 +60,13 @@ public class TangoActivity extends Activity {
         mCameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
 
+        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                mTTS.setLanguage(Locale.GERMAN);
+            }
+        });
+
         mProcessing = new Processing(mCameraPreview, mTTS);
         mProcessing.start();
     }
@@ -68,12 +75,8 @@ public class TangoActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                mTTS.setLanguage(Locale.GERMAN);
-            }
-        });
+
+
 
         try {
             connectTango();
