@@ -63,10 +63,10 @@ public class TangoActivity extends Activity {
             @Override
             public void onInit(int status) {
                 mTTS.setLanguage(Locale.GERMAN);
+                mProcessing = new Processing(mCameraPreview, mTTS, mOverlayRenderer);
+                mProcessing.start();
             }
         });
-        mProcessing = new Processing(mCameraPreview, mTTS, mOverlayRenderer);
-        mProcessing.start();
     }
 
     @Override
