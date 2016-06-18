@@ -14,6 +14,7 @@ import com.google.atap.tangoservice.TangoCameraIntrinsics;
 import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
+import java.util.List;
 
 public class OverlayRenderer extends View implements Runnable {
     private ColorMapper colorMapper = new ColorMapper(0, 5, 100);
@@ -93,7 +94,7 @@ public class OverlayRenderer extends View implements Runnable {
             path.lineTo((float) points[3].x * ratioX, (float) points[3].y * ratioY);
             path.lineTo((float)points[0].x * ratioX, (float)points[0].y * ratioY);
             //paint.setColor(zToColor((float)rectangle.getDistance()));
-            paintR.setColor(zToColorSimple(4));
+            paintR.setColor(zToColor((float) rectangle.getDistance()));
             canvas.drawPath(path, paintR);
         }
     }
