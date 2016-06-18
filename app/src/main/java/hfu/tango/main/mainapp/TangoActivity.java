@@ -59,8 +59,13 @@ public class TangoActivity extends Activity {
         mTango = new Tango(this);
         mCameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
         mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
-
-        mProcessing = new Processing(mCameraPreview, mTTS);
+        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                mTTS.setLanguage(Locale.GERMAN);
+            }
+        });
+        mProcessing = new Processing(mCameraPreview, mTTS, mOverlayRenderer);
         mProcessing.start();
     }
 
@@ -138,6 +143,7 @@ public class TangoActivity extends Activity {
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
                 mOverlayRenderer.update(xyzIj.xyz, mCameraIntrinsics);
                 mOverlayRenderer.postInvalidate();
+                mProcessing.updatePointCloudManager(xyzIj);
             }
 
             /**

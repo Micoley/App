@@ -16,6 +16,7 @@ public class Rectangle {
 
     public Rectangle(double[] p) {
         points = new Point[4];
+        distancePoints = new ArrayList<Float>();
         linearFunctions = new double[8];
         for (int i = 0; i < 4; i++) {
             points[i] = new Point(p[2 * i], p[2 * i + 1]);
@@ -26,6 +27,8 @@ public class Rectangle {
 
     public Rectangle() {
         points = new Point[4];
+        distancePoints = new ArrayList<Float>();
+
     }
 
     public void sePoints(double[] p) {
