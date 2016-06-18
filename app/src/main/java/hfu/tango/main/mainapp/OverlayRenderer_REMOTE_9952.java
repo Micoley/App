@@ -14,9 +14,9 @@ import com.google.atap.tangoservice.TangoCameraIntrinsics;
 import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
+import java.util.List;
 
 public class OverlayRenderer extends View implements Runnable {
-    private ColorMapper colorMapper = new ColorMapper(0, 5, 100);
     private Paint paint;
     private FloatBuffer buffer;
     public static TangoCameraIntrinsics intrinsics;
@@ -71,7 +71,7 @@ public class OverlayRenderer extends View implements Runnable {
             float y = buffer.get(i + 1);
             float z = buffer.get(i + 2);
 
-            paint.setColor(zToColor(z));
+            paint.setColor(zToColorSimple(z));
             canvas.drawPoint((x * fx + z * cx) / z * (this.getWidth() / w), (y * fy + z * cy) / z * (this.getHeight() / h), paint);
         }
     }
@@ -106,8 +106,18 @@ public class OverlayRenderer extends View implements Runnable {
      */
 
     private int zToColor(float z){
-        return colorMapper.mapToColor(z);
+        double y = Math.log(z + 1) / 1.8;
+        Log.d("HFU_DEBUG", String.valueOf(y));
+        int r = (int) (y * 255);
+        int g = 255 - ((int) (y * 255));
+        return  Color.rgb(r,g,Math.abs(r-g));
     }
+    private int zToColorSimple(float z){
+        int r = (int) (z * 255);
+        int g = 255 - ((int) (z * 255));
+        return  Color.rgb(r,g,0);
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {

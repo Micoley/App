@@ -13,6 +13,8 @@ public class UtilitysHelper {
 
     public static int Display_Heigth = 720;
     public static int Display_Width = 1280;
+    public static int Image_Heigth = 720;
+    public static int Image_Width = 1280;
 
 
     public static float getXasDisplayCoordinate(float x, float z) {
@@ -21,5 +23,12 @@ public class UtilitysHelper {
 
     public static float getYasDisplayCoordinate(float y, float z) {
         return (y * fy + z * cy) / z * (Display_Heigth / h);
+    }
+    public static float getXAsImageCoordinate(float x, float z) {
+        return (x * fx + z * cx) / z * (1280 / w);
+    }
+
+    public static float getYAsImageCoordinate(float y, float z) {
+        return (y * fy + z * cy) / z * (720 / h);
     }
 }
