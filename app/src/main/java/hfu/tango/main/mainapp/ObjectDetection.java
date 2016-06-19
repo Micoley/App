@@ -72,6 +72,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
 	@Override
 	public List<Rectangle> houghLinesP(Mat m1){
 		List<Rectangle> rec = new ArrayList<Rectangle>();
+		List<Rectangle> output = new ArrayList<Rectangle>();
 		Mat lines = new Mat();
 		Mat m = m1.clone();
 
@@ -180,7 +181,8 @@ public class ObjectDetection implements OpenCvComponentInterface {
 				}
 			}
 		}
-		return rec;
+		output = filter2(rec);
+		return output;
 	}
 	
 	//Abstandsberechnung für 2 Punkte
@@ -196,7 +198,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		return 0;
 	}
 	
-	//Nahezu gleiche Rechtecke vereinigen
+	//Nahezu gleiche Rechtecke von contours vereinigen
 	private List<Rectangle> filter(List<Rectangle> list){
 		List<Rectangle> res1 = new ArrayList<Rectangle>();
 		List<Rectangle> res2 = new ArrayList<Rectangle>();
@@ -260,6 +262,53 @@ public class ObjectDetection implements OpenCvComponentInterface {
 								}
 								flag = true;
 							}
+						}
+					}
+				}
+			}
+		}
+		return res2;
+	}
+	
+	//Nahezu gleich Vierecke von houghLinesP vereinigen
+	private List<Rectangle> filter2(List<Rectangle> list){
+		List<Rectangle> res1 = new ArrayList<Rectangle>();
+		List<Rectangle> res2 = new ArrayList<Rectangle>();
+		boolean flag = true;
+		for(Rectangle a : list){
+			res1.add(a);
+		}
+		for(Rectangle a : list){
+			res2.add(a);
+		}
+		while(flag){
+			res1.clear();
+			for(Rectangle x : res2){
+				res1.add(x);
+			}
+			res2.clear();
+			for(Rectangle x : res1){
+				res2.add(x);
+			}
+			flag = false;
+			for(Rectangle a : res1){
+				Point[] aa = a.getPoints();
+				for(Rectangle b : res1){
+					if(!a.compare(b)){
+						Point[] bb = b.getPoints();
+						boolean[] compare = new boolean[4];
+						for(int i = 0; i <= 3; i++){
+							compare[i] = false;
+							for(Point b1 : bb){
+								if(distance(aa[i].x,aa[i].y,b1.x,b1.y) < 10){
+									compare[i] = true;
+								}
+							}
+						}
+						if(compare[0] && compare[1] && compare[2] && compare[3]){
+							res2.remove(a);
+							res2.remove(b);
+							res2.add(a);
 						}
 					}
 				}
