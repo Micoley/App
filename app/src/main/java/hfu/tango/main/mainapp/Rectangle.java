@@ -12,10 +12,12 @@ public class Rectangle {
     private double[] linearFunctions; //d,b
     private double distance;
     private String relativePosition = "";
+    private String color = "konnte nicht erkannt werden";
 
 
     public Rectangle(double[] p) {
         points = new Point[4];
+        distance = Double.MAX_VALUE;
         distancePoints = new ArrayList<Float>();
         linearFunctions = new double[8];
         for (int i = 0; i < 4; i++) {
@@ -27,6 +29,7 @@ public class Rectangle {
 
     public Rectangle() {
         points = new Point[4];
+        distance = Double.MAX_VALUE;
         distancePoints = new ArrayList<Float>();
 
     }
@@ -134,6 +137,11 @@ public class Rectangle {
     public void setRelativePosition(String relativePosition) {
         this.relativePosition = relativePosition;
     }
-
+    public void setColor(String color){
+        this.color = color;
+    }
+    public String getColor(){
+        return color;
+    }
 
 }

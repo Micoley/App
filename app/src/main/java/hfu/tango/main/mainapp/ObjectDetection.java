@@ -23,7 +23,6 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		Mat hierarchy = new Mat();
 
 		Mat m = m1.clone();
-
 		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY);
 
 		Imgproc.Canny(m, m, 50, 150);

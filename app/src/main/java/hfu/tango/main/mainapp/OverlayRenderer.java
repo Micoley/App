@@ -93,9 +93,12 @@ public class OverlayRenderer extends View implements Runnable {
             path.lineTo((float) points[2].x * ratioX, (float) points[2].y * ratioY);
             path.lineTo((float) points[3].x * ratioX, (float) points[3].y * ratioY);
             path.lineTo((float)points[0].x * ratioX, (float)points[0].y * ratioY);
-            //paint.setColor(zToColor((float)rectangle.getDistance()));
+            //paint.setColor(zToColor((float)rectangle.getDistance())); */
             paintR.setColor(zToColor((float) rectangle.getDistance()));
             canvas.drawPath(path, paintR);
+
+          // canvas.drawRect((float)points[0].x * ratioX, (float)points[2].y * ratioY, (float) points[2].x * ratioX, (float) points[0].y * ratioY, paintR);
+
         }
     }
 

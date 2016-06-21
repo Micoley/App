@@ -12,8 +12,12 @@ import org.opencv.core.Point;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+
 
 public class Processing extends Thread {
     private final CameraPreview mCameraRenderer;
@@ -26,6 +30,7 @@ public class Processing extends Thread {
     private long timeOld = 0;
     private OverlayRenderer overlayRenderer;
     private TangoPointCloudManager pointCloudManager;
+    private ColorCube colorCube;
 
     public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech, OverlayRenderer overlayRenderer) {
         pointCloudManager = new TangoPointCloudManager();
@@ -33,6 +38,7 @@ public class Processing extends Thread {
         this.overlayRenderer = overlayRenderer;
         mObjectDetection = new ObjectDetection();
         this.textToSpeech = textToSpeech;
+        colorCube = new ColorCube();
         warnings = new TreeSet<String>() {
         };
     }
@@ -41,12 +47,11 @@ public class Processing extends Thread {
         pointCloudManager.updateXyzIj(buffer);
     }
 
-    public void update(FloatBuffer buffer, List<Rectangle> rectangles) {
+    public void update(FloatBuffer buffer, List<Rectangle> rectangles, Mat mat) {
         this.buffer = buffer;
         // this.rectangles = rectangles;
         // mapPointsToObjects();
         //if (System.currentTimeMillis() > timeOld + 5000) {
-        timeOld = System.currentTimeMillis();
 
         float x, y;
         for (int i = 0; i < buffer.capacity(); i += 3) {
@@ -54,79 +59,92 @@ public class Processing extends Thread {
             y = UtilitysHelper.getYasDisplayCoordinate(buffer.get(i + 1), buffer.get(i + 2));
             checkDistanceInAreas(x, y, buffer.get(i + 2));
         }
-        mapPointsToObjects(rectangles);
+        mapPointsToObjects(rectangles, mat.clone());
         overlayRenderer.updateRectangles(rectangles);
         overlayRenderer.postInvalidate();
 
-        readResults(rectangles);
-        //  }
+        if (System.currentTimeMillis() > timeOld + 5000) {
+            timeOld = System.currentTimeMillis();
+            readResults(rectangles);
+        }
 
     }
 
     private void readResults(List<Rectangle> rectangles) {
-      /*  if (warnings != null) {
+    /*    if (warnings.size() != 0) {
 
             for (String warning : warnings) {
                 Log.d("output", String.valueOf(warning));
                 textToSpeech.speak(warning, TextToSpeech.QUEUE_FLUSH, null);
             }
             warnings.clear();
-        }*/
-        Rectangle sr1 = new Rectangle();
-        Rectangle sr2 = new Rectangle();
-        sr1.setDistance(Double.MAX_VALUE);
-        sr2.setDistance(Double.MAX_VALUE);
-        for (Rectangle rectangle : rectangles) {
-            //   Log.d("Distance", String.valueOf(rectangle.getDistance()));
-            if (rectangle.getDistance() < sr1.getDistance()) {
-                sr1 = rectangle;
-            } else if (rectangle.getDistance() < sr2.getDistance()) {
-                sr2 = rectangle;
+        } else {*/
+            Rectangle sr1 = new Rectangle();
+            Rectangle sr2 = new Rectangle();
+            sr1.setDistance(Double.MAX_VALUE);
+            sr2.setDistance(Double.MAX_VALUE);
+            for (Rectangle rectangle : rectangles) {
+                //   Log.d("Distance", String.valueOf(rectangle.getDistance()));
+                if (rectangle.getDistance() < sr1.getDistance()) {
+                    sr1 = rectangle;
+                } else if (rectangle.getDistance() < sr2.getDistance()) {
+                    sr2 = rectangle;
+                }
             }
-        }
-        String ausgabe;
-        if (sr1.getDistance() < Double.MAX_VALUE) {
-            if (sr1.getDistance() < 1) {
-                ausgabe = "Rechteck"  + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100)) + " centimetern Entfernung.";
-            } else {
-                ausgabe = "Rechteck"  + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100) / 100) + " metern Entfernung.";
-            }
-            textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
-            Log.d("Processing", ausgabe);
+            String ausgabe;
+            if (sr1.getDistance() < Double.MAX_VALUE) {
+                if (sr1.getDistance() < 1) {
+                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100)) + " zentimetern Entfernung.";
+                } else if (sr1.getDistance() == 1) {
+                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in einem meter Entfernung.";
+                } else {
+                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100) / 100) + " metern Entfernung.";
+                }
+                ausgabe += "Farbe " + sr1.getColor() + ".";
+                textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
 
-        }
-        if (sr2.getDistance() < Double.MAX_VALUE) {
-            if (sr1.getDistance() < 1) {
-                ausgabe = "Rechteck"  + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100)) + " centimetern Entfernung.";
-            } else {
-                ausgabe = "Rechteck"  + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100) / 100) + " metern Entfernung.";
             }
-            textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
-            Log.d("Processing", ausgabe);
+            if (sr2.getDistance() < Double.MAX_VALUE) {
+                if (sr2.getDistance() < 1) {
+                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100)) + " zentimetern Entfernung.";
 
-        }
+                } else if (sr2.getDistance() == 1) {
+                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in einem meter Entfernung.";
+                } else {
+                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100) / 100) + " metern Entfernung.";
+                }
+                ausgabe += "Farbe " + sr2.getColor() + ".";
+                textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
+
+            }
+
+    //    }
         //   textToSpeech.speakWithDelay("" + rectangles.size() + " obstacles detected.", 0);
         /*for (Rectangle rectangle : rectangles) {
             textToSpeech.speakWithDelay("There is a rectangle, distance " + rectangle.getDistance() + "meters, position " + rectangle.getRelativePosition() + ".", 0);
         }*/
     }
 
-    private void mapPointsToObjects(List<Rectangle> rectangles) {
+    private void mapPointsToObjects(List<Rectangle> rectangles, Mat mat) {
         Rectangle rectangle;
         float x, y;
         for (int e = 0; e < rectangles.size(); e++) {
             rectangle = rectangles.get(e);
-            for (int i = 0; i < buffer.capacity(); i += 3) {
-                x = UtilitysHelper.getXAsImageCoordinate(buffer.get(i), buffer.get(i + 2));
-                y = UtilitysHelper.getYAsImageCoordinate(buffer.get(i + 1), buffer.get(i + 2));
-                if (isPointInRectangleSimple(x, y, rectangles.get(e))) {
-                    rectangle.getDistancePoints().add(x);
-                    rectangle.getDistancePoints().add(y);
-                    rectangle.getDistancePoints().add(buffer.get(i + 2));
+            Point points[] = rectangle.getPoints();
+            if(points[3].x - points[0].x > 10 && points[0].y - points[2].y > 10 && points[3].x - points[0].x < UtilitysHelper.Display_Width - 10 &&  points[0].y - points[2].y < UtilitysHelper.Display_Heigth - 10) {
+                for (int i = 0; i < buffer.capacity(); i += 3) {
+                    x = UtilitysHelper.getXAsImageCoordinate(buffer.get(i), buffer.get(i + 2));
+                    y = UtilitysHelper.getYAsImageCoordinate(buffer.get(i + 1), buffer.get(i + 2));
+                    if (isPointInRectangleSimple(x, y, rectangles.get(e))) {
+                        rectangle.getDistancePoints().add(x);
+                        rectangle.getDistancePoints().add(y);
+                        rectangle.getDistancePoints().add(buffer.get(i + 2));
+                    }
                 }
+                setRelativePosition(rectangle);
+                setMedianDistance(rectangle);
+                setRectangleColor(rectangle, mat);
             }
-            setRelativePosition(rectangle);
-            setMedianDistance(rectangle);
             // updateRectangleCoordinates(rectangle);
         }
     }
@@ -135,38 +153,40 @@ public class Processing extends Thread {
         Point[] points = rectangle.getPoints();
         float minDistanceX = Float.MAX_VALUE;
         float minDistanceY = Float.MAX_VALUE;
+        float middleAreaWidth = 0.3f;
+        float middleAreaHeight = 0.3f;
         for (int i = 0; i < points.length; i++) {
             float dx = (float) (UtilitysHelper.Image_Width / 2 - points[i].x);
             float dy = (float) (UtilitysHelper.Image_Heigth / 2 - points[i].y);
             if (Math.abs(dx) < Math.abs(minDistanceX)) {
-                minDistanceX = dx;
+                minDistanceX = Math.abs(dx);
             }
             if (Math.abs(dy) < Math.abs(minDistanceY)) {
-                minDistanceY = dy;
+                minDistanceY = Math.abs(dy);
             }
         }
-        if (minDistanceX < UtilitysHelper.Image_Width * 0.2) {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * 0.1) {
-                rectangle.setRelativePosition("links, oben");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * 0.9) {
+        if (minDistanceX < UtilitysHelper.Image_Width * ((1 - middleAreaWidth) / 2)) {
+            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
                 rectangle.setRelativePosition("links, unten");
+            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                rectangle.setRelativePosition("links, oben");
             } else {
                 rectangle.setRelativePosition("links");
             }
         }
-        if (minDistanceX > UtilitysHelper.Image_Width * 0.8) {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * 0.1) {
-                rectangle.setRelativePosition("rechts, oben");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * 0.9) {
+        if (minDistanceX > UtilitysHelper.Image_Width * ((1 - middleAreaWidth) / 2) + middleAreaWidth) {
+            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
                 rectangle.setRelativePosition("rechts, unten");
+            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                rectangle.setRelativePosition("rechts, oben");
             } else {
                 rectangle.setRelativePosition("rechts");
             }
         } else {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * 0.1) {
-                rectangle.setRelativePosition("vorne, oben");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * 0.9) {
+            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
                 rectangle.setRelativePosition("vorne, unten");
+            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                rectangle.setRelativePosition("vorne, oben");
             } else {
                 rectangle.setRelativePosition("vorne");
             }
@@ -175,31 +195,33 @@ public class Processing extends Thread {
     }
 
     private void checkDistanceInAreas(float x, float y, float z) {
+        float middleAreaWidth = 0.3f;
+        float middleAreaHeight = 0.3f;
         if (z < warningDistance) {
-            if (x < UtilitysHelper.Display_Width * 0.2) {
-                if (y < UtilitysHelper.Display_Heigth * 0.1) {
-                    warnings.add("Collision warning left, top");
-                } else if (y > UtilitysHelper.Display_Heigth * 0.9) {
-                    warnings.add("Collision warning left, bottom");
+            if (x < UtilitysHelper.Display_Width * ((1 - middleAreaWidth) / 2)) {
+                if (y < UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2)) {
+                    warnings.add("Kollisionsgefahr links oben");
+                } else if (y > UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                    warnings.add("Kollisionsgefahr links unten");
                 } else {
-                    warnings.add("Collision warning left");
+                    warnings.add("Kollisionsgefahr links");
                 }
             }
-            if (x > UtilitysHelper.Display_Width * 0.8) {
-                if (y < UtilitysHelper.Display_Heigth * 0.1) {
-                    warnings.add("Collision warning right, top");
-                } else if (y > UtilitysHelper.Display_Heigth * 0.9) {
-                    warnings.add("Collision warning right, bottom");
+            if (x > UtilitysHelper.Display_Width * ((1 - middleAreaWidth) / 2) + middleAreaWidth) {
+                if (y < UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2)) {
+                    warnings.add("Kollisionsgefahr rechts oben");
+                } else if (y > UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                    warnings.add("Kollisionsgefahr rechts unten");
                 } else {
-                    warnings.add("Collision warning right");
+                    warnings.add("Kollisionsgefahr rechts");
                 }
             } else {
-                if (y < UtilitysHelper.Display_Heigth * 0.1) {
-                    warnings.add("Collision warning front, Top");
-                } else if (y > UtilitysHelper.Display_Heigth * 0.9) {
-                    warnings.add("Collision warning front, bottom");
+                if (y < UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2)) {
+                    warnings.add("Kollisionsgefahr vorne oben");
+                } else if (y > UtilitysHelper.Display_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
+                    warnings.add("Kollisionsgefahr unten");
                 } else {
-                    warnings.add("Collision warning front");
+                    warnings.add("Kollisionsgefahr vorne");
                 }
             }
         }
@@ -239,6 +261,51 @@ public class Processing extends Thread {
             }
         }
         return false;
+    }
+
+    public void setRectangleColor(Rectangle rectangle, Mat mat) {
+        Point points[] = rectangle.points;
+        int precision = 10;
+        int colorCount[] = new int[3]; // r, g, b
+        //Map<String, Integer> colorCount = new TreeMap<>();
+      //  Log.d("Color", String.valueOf(rectangle.points[0].y) + " " + String.valueOf(rectangle.points[2].y));
+        for (int x = (int) points[0].x; x <= (int) rectangle.points[3].x - precision; x += precision) {
+
+            for (int y = (int) points[2].y; y <= (int) rectangle.points[0].y - precision; y += precision) {
+                Log.d("Color",  "Color");
+
+                double data[] = mat.get(y, x);
+              /*  if (data[0] > data[1] && data[0] > data[2]) {
+                    colorCount[0] ++;
+                }else if(data[1] > data[0] && data[1] > data[2]){
+                    colorCount[1] ++;
+                }else if(colorCount[2] > colorCount[0] && colorCount[2] > colorCount[1]){
+                    colorCount[2] ++;
+                }
+                */
+                colorCount[0] += data[0];
+                colorCount[1] += data[1];
+                colorCount[2] += data[2];
+            }
+        }
+        int max = 0;
+        rectangle.setColor(colorCube.getColor(colorCount));
+        /*if (colorCount[0] > colorCount[1] && colorCount[0] > colorCount[2]) {
+            rectangle.setColor("rot");
+        }else if(colorCount[1] > colorCount[0] && colorCount[1] > colorCount[2]){
+            rectangle.setColor("grün");
+        }else if(colorCount[2] > colorCount[0] && colorCount[2] > colorCount[1]){
+            rectangle.setColor("blau");
+        }/*
+
+
+      /*  for(Integer value: colorCount.values()){
+            if(value > max){
+                max = value;
+            }
+        }
+      */
+
     }
 
     private void updateRectangleCoordinates(Rectangle rectangle) {
@@ -298,7 +365,7 @@ public class Processing extends Thread {
             if (mImageBuffer != null) {
                 List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
                 if (OverlayRenderer.intrinsics != null) {
-                    this.update(pointCloudManager.getLatestXyzIj().xyz, objects);
+                    this.update(pointCloudManager.getLatestXyzIj().xyz, objects, mImageBuffer);
                 }
                 //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
                 Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
