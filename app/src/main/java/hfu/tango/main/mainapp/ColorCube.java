@@ -1,5 +1,7 @@
 package hfu.tango.main.mainapp;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 /**
@@ -21,7 +23,7 @@ public class ColorCube {
         names.add("schwarz");
         names.add("blau");
         names.add("grün");
-        names.add("hellblau");
+        names.add("grau");
         names.add("rot");
         names.add("violet");
         names.add("gelb");
@@ -33,18 +35,21 @@ public class ColorCube {
     private void createSubCubes(int count) {
         corners = new int[count][6];
         int count1D = (int) Math.pow((double) count, 1.0 / 3.0);
-        int cubeLengt = 255 / count1D;
+        int cubeLength = (255 / count1D) + 1;
+        int postion = 0;
         for (int r = 0; r < count1D; r++) {
             for (int g = 0; g < count1D; g++) {
                 for (int b = 0; b < count1D; b++) {
-                    corners[r + g + b][0] = r * cubeLengt;
-                    corners[r + g + b][1] = g * cubeLengt;
-                    corners[r + g + b][2] = b * cubeLengt;
+
+                    corners[postion][0] = r * cubeLength;
+                    corners[postion][1] = g * cubeLength;
+                    corners[postion][2] = b * cubeLength;
 
 
-                    corners[r + g + b][3] = r * cubeLengt + cubeLengt;
-                    corners[r + g + b][4] = g * cubeLengt + cubeLengt;
-                    corners[r + g + b][5] = b * cubeLengt + cubeLengt;
+                    corners[postion][3] = r * cubeLength + cubeLength;
+                    corners[postion][4] = g * cubeLength + cubeLength;
+                    corners[postion][5] = b * cubeLength + cubeLength;
+                    postion++;
                 }
             }
         }

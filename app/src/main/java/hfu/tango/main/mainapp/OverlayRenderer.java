@@ -20,6 +20,7 @@ public class OverlayRenderer extends View implements Runnable {
     private ColorMapper colorMapper = new ColorMapper(0, 5, 100);
     private Paint paint;
     private FloatBuffer buffer;
+
     public static TangoCameraIntrinsics intrinsics;
     private Paint paintR;
     private List<Rectangle> rectangles;

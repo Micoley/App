@@ -11,6 +11,7 @@ import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -102,6 +103,7 @@ public class Processing extends Thread {
                 }
                 ausgabe += "Farbe " + sr1.getColor() + ".";
                 textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
+                Log.d("Ausgabe", ausgabe);
 
             }
             if (sr2.getDistance() < Double.MAX_VALUE) {
@@ -115,7 +117,7 @@ public class Processing extends Thread {
                 }
                 ausgabe += "Farbe " + sr2.getColor() + ".";
                 textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
-
+                Log.d("Ausgabe", ausgabe);
             }
 
     //    }
@@ -267,14 +269,28 @@ public class Processing extends Thread {
         Point points[] = rectangle.points;
         int precision = 10;
         int colorCount[] = new int[3]; // r, g, b
+        ArrayList<String> names = new ArrayList<>();
+        ArrayList<Integer> count = new ArrayList<>();
+        String color;
         //Map<String, Integer> colorCount = new TreeMap<>();
       //  Log.d("Color", String.valueOf(rectangle.points[0].y) + " " + String.valueOf(rectangle.points[2].y));
         for (int x = (int) points[0].x; x <= (int) rectangle.points[3].x - precision; x += precision) {
 
             for (int y = (int) points[2].y; y <= (int) rectangle.points[0].y - precision; y += precision) {
-                Log.d("Color",  "Color");
 
                 double data[] = mat.get(y, x);
+                int dataInt[] = new int[3];
+                for(int i = 0; i < data.length; i++){
+                    dataInt[i] = (int) data[i];
+                }
+                color = colorCube.getColor(dataInt);
+                if(names.contains(color)){
+                    int index = names.indexOf(color);
+                    count.set(index,count.get(index) + 1);
+                }else{
+                    names.add(color);
+                    count.add(1);
+                }
               /*  if (data[0] > data[1] && data[0] > data[2]) {
                     colorCount[0] ++;
                 }else if(data[1] > data[0] && data[1] > data[2]){
@@ -289,7 +305,14 @@ public class Processing extends Thread {
             }
         }
         int max = 0;
-        rectangle.setColor(colorCube.getColor(colorCount));
+        int maxIndex = 0;
+        for(int i = 0; i < count.size(); i++){
+            if(count.get(i) > max){
+                max = count.get(i);
+                maxIndex = i;
+            }
+        }
+        rectangle.setColor(names.get(maxIndex));
         /*if (colorCount[0] > colorCount[1] && colorCount[0] > colorCount[2]) {
             rectangle.setColor("rot");
         }else if(colorCount[1] > colorCount[0] && colorCount[1] > colorCount[2]){
@@ -334,7 +357,6 @@ public class Processing extends Thread {
             rPoints[2] = rightBottomCorner;
             rPoints[3].x = rightBottomCorner.x;
             rPoints[3].y = leftTopCorner.y;
-            Log.d("Processing", "Left Top x/y: " + String.valueOf(leftTopCorner.x) + "/" + String.valueOf(leftTopCorner.y) + ", Right Bottom x/y: " + String.valueOf(rightBottomCorner.x) + "/" + String.valueOf(rightBottomCorner.y));
         }
     }
 
