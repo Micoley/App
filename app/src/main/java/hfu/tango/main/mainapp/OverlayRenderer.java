@@ -20,7 +20,8 @@ public class OverlayRenderer extends View implements Runnable {
     private ColorMapper colorMapper = new ColorMapper(0, 5, 100);
     private Paint paint;
     private FloatBuffer buffer;
-
+    private boolean showPointCloud;
+    private boolean showRectangles;
     public static TangoCameraIntrinsics intrinsics;
     private Paint paintR;
     private List<Rectangle> rectangles;
@@ -36,6 +37,7 @@ public class OverlayRenderer extends View implements Runnable {
 
     public OverlayRenderer(Context context) {
         super(context);
+
     }
 
     public OverlayRenderer(Context context, AttributeSet attrs) {
@@ -48,6 +50,7 @@ public class OverlayRenderer extends View implements Runnable {
     public synchronized void update(FloatBuffer buffer, TangoCameraIntrinsics intrinsics) {
         this.buffer = buffer;
         this.intrinsics = intrinsics;
+
     }
     /**
      * Die Overlayview wird mit erkannten Objekten von opencv geupdatet
@@ -117,15 +120,28 @@ public class OverlayRenderer extends View implements Runnable {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        if (buffer != null) {
+        long time = System.currentTimeMillis();
+        if (buffer != null && showPointCloud) {
             drawPointBuffer(canvas);
         }
-        if(rectangles != null){
+       // Log.d("Render", "Render points: " + String.valueOf((System.currentTimeMillis() - time)) + "ms");
+        time = System.currentTimeMillis();
+        if(rectangles != null && showRectangles){
             drawRectangles(canvas);
         }
+       // Log.d("Render", "Render rectangles: " + String.valueOf((System.currentTimeMillis() - time)) + "ms");
+
     }
 
     @Override
     public void run() {}
+
+    public void togglePointCloud(){
+        showPointCloud = !showPointCloud;
+
+    }
+    public void toggleRectangles(){
+        showRectangles = !showRectangles;
+
+    }
 }

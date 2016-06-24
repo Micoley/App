@@ -14,20 +14,39 @@ public class ColorCube {
 
     public ColorCube() {
         names = getStandardNames();
-        createSubCubes(8);
+        createSubCubes(27);
     }
 
 
     private ArrayList<String> getStandardNames() {
         ArrayList<String> names = new ArrayList<>();
         names.add("schwarz");
+        names.add("dunkelbau");
         names.add("blau");
-        names.add("grün");
-        names.add("grau");
+        names.add("kirschrot");
+        names.add("rotviolet");
         names.add("rot");
-        names.add("violet");
+        names.add("rubinrot");
+        names.add("magenta");
+        names.add("dunkelgrün");
+        names.add("dschungelgrün");
+        names.add("köngisblau");
+        names.add("ovlivgrün");
+        names.add("grau");
+        names.add("orchidee");
+        names.add("orange");
+        names.add("pfirsich");
+        names.add("rosa");
+        names.add("grün");
+        names.add("lemonengrün");
+        names.add("türkis");
+        names.add("hellgrün");
+        names.add("gelbgrün");
+        names.add("himmelblau");
         names.add("gelb");
-        names.add("weis");
+        names.add("zitronengelb");
+        names.add("weiss");
+        names.add("weiss");
         return names;
 
     }

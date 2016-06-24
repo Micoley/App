@@ -85,4 +85,6 @@ dependencies {
     compile project(':openCVLibrary310')
     compile files('libs/TangoSDK_Mira_Java.jar')
     compile(name:'TangoSupport_Okul_Java', ext:'aar')
+    compile 'com.android.support:design:23.4.0'
+
 }

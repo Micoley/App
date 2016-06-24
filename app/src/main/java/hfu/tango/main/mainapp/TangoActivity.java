@@ -2,7 +2,19 @@ package hfu.tango.main.mainapp;
 
 
 import android.app.Activity;
+import android.graphics.PixelFormat;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.google.atap.tangoservice.Tango;
@@ -16,10 +28,12 @@ import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
+import android.support.design.widget.NavigationView;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class TangoActivity extends Activity {
+public class TangoActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     /**
      * Wird benötigt um auf die Project Tango spezifischen Sensoren zuzugreifen
@@ -53,7 +67,8 @@ public class TangoActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.activity_tango);
+        setContentView(R.layout.drawer);
+
 
         mOverlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
         mTango = new Tango(this);
@@ -67,6 +82,33 @@ public class TangoActivity extends Activity {
                 mProcessing.start();
             }
         });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mOverlayRenderer.togglePointCloud();
+
+            }
+        });
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mOverlayRenderer.toggleRectangles();
+
+            }
+        });
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
     @Override
@@ -166,5 +208,36 @@ public class TangoActivity extends Activity {
             public void onTangoEvent(final TangoEvent event) {
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+            Log.d("Input", "Input");
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
