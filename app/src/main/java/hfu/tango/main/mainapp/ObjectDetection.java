@@ -12,21 +12,32 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
+//Klasse zum Analysieren eines Bildes
 public class ObjectDetection implements OpenCvComponentInterface {
 
-    //Konturenerkennung
+    /*Konturenerkennung
+     * Ablauf:
+     * 1. Mat wird von farbig zu grau konvertiert
+     * 2. Cannyfilter sucht Kanten
+     * 3. Linienbegradigung und Invertierung
+     * 4. findContours() sucht Konturen
+     * 5. Aus Konturen werden umschließende Rechtecke errechnet
+     * 6. Gibt Liste von Rechtecken zurück
+     * @param m1 Eingabebild als Mat
+     */
     @Override
     public List<Rectangle> contours(Mat m1){
 		List<MatOfPoint> contours;
 		List<Rectangle> output = new ArrayList<Rectangle>();
-		List<Rectangle> output2 = new ArrayList<Rectangle>();
 		Mat hierarchy = new Mat();
 
 		Mat m = m1.clone();
-		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY);
+		
+		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY); //Mat wird von farbig zu grau konvertiert
 
-		Imgproc.Canny(m, m, 50, 150);
+		Imgproc.Canny(m, m, 50, 150); //Cannyfilter sucht Kanten
 
+		//Linienbegradigung und Invertierung
 		Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
 		Imgproc.threshold(m, m, 70, 255, Imgproc.THRESH_BINARY);
 		
@@ -40,10 +51,12 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		Imgproc.threshold(m, m, 0, 80, Imgproc.THRESH_BINARY_INV);
 		Imgproc.threshold(m, m, 70, 255, Imgproc.THRESH_BINARY);
 	 
+		//findContours() sucht Konturen
 		contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(m.clone(), contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		if (hierarchy.size().height > 0 && hierarchy.size().width > 0){
 			for (int idx = 0; idx >= 0; idx = (int) hierarchy.get(0, idx)[0]){
+				//Aus Konturen werden umschließende Rechtecke errechnet
 				int left = m.width();
 				int right = 0;
 				int up = 0;
@@ -57,17 +70,27 @@ public class ObjectDetection implements OpenCvComponentInterface {
 						if (vec[1] > up) up = (int) vec[1];
 					}
 				}
-				if((right - left) * (up - down) > 5000) { //&&(right - left) * (up - down) < 1200*700){
+				if((right - left) * (up - down) > 5000 && (right - left) * (up - down) < 1200*700){
 					double [] rec = {left, up, left, down, right, down, right, up};
 					output.add(new Rectangle(rec));
 				}
 			}
 		}
-		//output2 = filter(output);
-		return output;
+		return output; //Gibt Liste von Rechtecken zurück
 	}
 	
-	//Viereckerkennung
+	/*Viereckerkennung
+	 * Ablauf:
+     * 1. Mat wird von farbig zu grau konvertiert
+     * 2. Cannyfilter sucht Kanten
+     * 3. Linienbegradigung und Linienverdickung
+     * 4. houghlinesP sucht Linien
+     * 5. Jeweils 2 der gefundenen Linien werden untersucht und wenn möglich verbunden.
+     * 6. Jeweils 2 der verbundenen Linien werden untersucht und wenn möglich verbunden.
+     * 7. Gefundene Vierecke werden verglichen und zu ähnliche werden aussortiert.
+     * 8. Gibt Liste von Vierecken zurück
+	 * @param m1 Eingabebild as Mat
+	 */
 	@Override
 	public List<Rectangle> houghLinesP(Mat m1){
 		List<Rectangle> rec = new ArrayList<Rectangle>();
@@ -75,10 +98,11 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		Mat lines = new Mat();
 		Mat m = m1.clone();
 
-		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY);
+		Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2GRAY); //Mat wird von farbig zu grau konvertiert
 		
-		Imgproc.Canny(m, m, 50, 150);
+		Imgproc.Canny(m, m, 50, 150); //Cannyfilter sucht Kanten
 		
+		//Linienbegradigung und Linienverdickung
 		for(int i = 0; i < 5; i++){
 			Imgproc.GaussianBlur(m, m, new Size(3,3), 0);
 			Imgproc.threshold(m, m, 70, 255, Imgproc.THRESH_BINARY);
@@ -87,7 +111,9 @@ public class ObjectDetection implements OpenCvComponentInterface {
 			Imgproc.threshold(m, m, 0, 80, Imgproc.THRESH_BINARY);
 		}
 		
-		Imgproc.HoughLinesP(m, lines, 1, Math.PI/180, 80, 80, 10);
+		Imgproc.HoughLinesP(m, lines, 1, Math.PI/180, 80, 80, 10); //houghlinesP sucht Linien
+		
+		//Jeweils 2 der gefundenen Linien werden untersucht und wenn möglich verbunden.
 		double maxDistance = 10;
 		double minAngle = 40;
 		List<double[]> twoLines = new ArrayList<double[]>();
@@ -152,6 +178,8 @@ public class ObjectDetection implements OpenCvComponentInterface {
 				}
 			}
 		}
+		
+		//Jeweils 2 der verbundenen Linien werden untersucht und wenn möglich verbunden.
 		for(double[] a : twoLines){
 			for(double[] b : twoLines){
 				if((a[2] != b[2])&&(a[3] != b[3])){
@@ -180,8 +208,8 @@ public class ObjectDetection implements OpenCvComponentInterface {
 				}
 			}
 		}
-		output = filter2(rec);
-		return output;
+		output = filter(rec); //Gefundene Vierecke werden verglichen und zu ähnliche werden aussortiert.
+		return output; //Gibt Liste von Vierecken zurück
 	}
 	
 	//Abstandsberechnung für 2 Punkte
@@ -197,80 +225,8 @@ public class ObjectDetection implements OpenCvComponentInterface {
 		return 0;
 	}
 	
-	//Nahezu gleiche Rechtecke von contours vereinigen
+	//Nahezu gleich Vierecke von houghLinesP aussortieren
 	private List<Rectangle> filter(List<Rectangle> list){
-		List<Rectangle> res1 = new ArrayList<Rectangle>();
-		List<Rectangle> res2 = new ArrayList<Rectangle>();
-		boolean flag = true;
-		for(Rectangle a : list){
-			res1.add(a);
-		}
-		for(Rectangle a : list){
-			res2.add(a);
-		}
-		while(flag){
-			res1.clear();
-			for(Rectangle x : res2){
-				res1.add(x);
-			}
-			res2.clear();
-			for(Rectangle x : res1){
-				res2.add(x);
-			}
-			flag = false;
-			for(Rectangle a : res1){
-				Point[] aa = a.getPoints();
-				double areaA = (aa[2].x - aa[0].x) * (aa[0].y - aa[2].y);
-				for(Rectangle b : res1){
-					if(!a.compare(b)){
-						Point[] bb = b.getPoints();
-						double areaB = (bb[2].x - bb[0].x) * (bb[0].y - bb[2].y);
-						if(aa[2].x > bb[0].x && aa[0].x < bb[2].x && aa[2].y < bb[0].y && aa[0].y > bb[2].y){
-							Point upleft1 = new Point(aa[0].x, aa[0].y);
-							Point downright1 = new Point(aa[2].x, aa[2].y);
-							Point upleft2 = new Point(bb[0].x, bb[0].y);
-							Point downright2 = new Point(bb[2].x, bb[2].y);
-							if(aa[0].x < bb[0].x){
-								upleft1.x = bb[0].x;
-								upleft2.x = aa[0].x;
-							}
-							if(aa[0].y > bb[0].y){
-								upleft1.y = bb[0].y;
-								upleft2.y = aa[0].y;
-							}
-							if(aa[2].x > bb[2].x){
-								downright1.x = bb[2].x;
-								downright2.x = aa[2].x;
-							}
-							if(aa[2].y < bb[2].y){
-								downright1.y = bb[2].y;
-								downright2.y = aa[2].y;
-							}
-							double areaC = (downright1.x - upleft1.x) * (upleft1.y - downright1.y);
-							if(areaC*1.1 > areaA && areaC*1.1 > areaB){
-								Rectangle r = new Rectangle(new double[]{upleft2.x, upleft2.y, downright2.x, upleft2.y, downright2.x, downright2.y, upleft2.x, downright2.y});
-								res2.remove(a);
-								res2.remove(b);
-								boolean add = true;
-								for(Rectangle x : res2){
-									if(x.compare(r))
-										add = false;
-								}
-								if(add){
-									res2.add(r);
-								}
-								flag = true;
-							}
-						}
-					}
-				}
-			}
-		}
-		return res2;
-	}
-	
-	//Nahezu gleich Vierecke von houghLinesP vereinigen
-	private List<Rectangle> filter2(List<Rectangle> list){
 		List<Rectangle> res1 = new ArrayList<Rectangle>();
 		List<Rectangle> res2 = new ArrayList<Rectangle>();
 		boolean flag = true;
