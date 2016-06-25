@@ -4,6 +4,7 @@ import org.opencv.core.Point;
 
 import java.util.ArrayList;
 
+//4 Punkte, die so sortiert sind, dass eine Linie von jedem Punkt zum nächsten ein normales Viereck ergibt.
 public class Rectangle {
     Point[] points;
 
@@ -63,6 +64,7 @@ public class Rectangle {
         return s;
     }
 
+    //Vergleich mit anderem Viereck
     public boolean compare(Rectangle r) {
         Point[] p = r.getPoints();
         return (p[0].x == points[0].x && p[0].y == points[0].y
