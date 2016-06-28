@@ -1,12 +1,7 @@
 package hfu.tango.main.mainapp;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
-/**
- * Created by Timo on 20.06.2016.
- */
 public class ColorCube {
 
     private int corners[][];

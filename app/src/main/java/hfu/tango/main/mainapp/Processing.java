@@ -11,19 +11,15 @@ import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 
 public class Processing extends Thread {
-    private final CameraPreview mCameraRenderer;
-    private Mat mImageBuffer;
-    private OpenCvComponentInterface mObjectDetection;
+    private final CameraPreview cameraPreview;
+    private Mat imageBuffer;
+    private OpenCvComponentInterface objectDetection;
     private FloatBuffer buffer;
     private TextToSpeech textToSpeech;
     private Set<String> warnings;
@@ -33,11 +29,11 @@ public class Processing extends Thread {
     private TangoPointCloudManager pointCloudManager;
     private ColorCube colorCube;
 
-    public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech, OverlayRenderer overlayRenderer) {
+    public Processing(CameraPreview cameraPreview, TextToSpeech textToSpeech, OverlayRenderer overlayRenderer) {
         pointCloudManager = new TangoPointCloudManager();
-        mCameraRenderer = cameraRenderer;
+        this.cameraPreview = cameraPreview;
         this.overlayRenderer = overlayRenderer;
-        mObjectDetection = new ObjectDetection();
+        objectDetection = new ObjectDetection();
         this.textToSpeech = textToSpeech;
         colorCube = new ColorCube();
         warnings = new TreeSet<String>() {
@@ -381,15 +377,15 @@ public class Processing extends Thread {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             Log.d("HFU_DEBUG", "processing aufgerufen");
-            mImageBuffer = mCameraRenderer.getLatestBufferData();
-            if (mImageBuffer != null) {
-                List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
+            imageBuffer = cameraPreview.getLatestBufferData();
+            if (imageBuffer != null) {
+                List<Rectangle> objects = objectDetection.contours(imageBuffer);
                 if (OverlayRenderer.intrinsics != null) {
-                    this.update(pointCloudManager.getLatestXyzIj().xyz, objects, mImageBuffer);
+                    this.update(pointCloudManager.getLatestXyzIj().xyz, objects, imageBuffer);
                 }
-                //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
                 Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
 
                 for (Rectangle object : objects) {
