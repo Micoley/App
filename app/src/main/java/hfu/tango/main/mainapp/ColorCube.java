@@ -2,6 +2,9 @@ package hfu.tango.main.mainapp;
 
 import java.util.ArrayList;
 
+/**
+ * Ein RGB-Farbwürfel mit dem man Farben einteilen kann mit belieber Größe (n^3)
+ */
 public class ColorCube {
 
     private int corners[][];

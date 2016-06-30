@@ -6,6 +6,9 @@ import org.opencv.core.Mat;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Interface für den Zugriff auf die Bildverarbeitung
+ */
 public interface OpenCvComponentInterface {
 
      List<Rectangle> contours(Mat m1);

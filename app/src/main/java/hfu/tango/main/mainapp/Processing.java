@@ -16,6 +16,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
+/**
+ * Klasse zur Verarbeitung von Informationen aus der Bildverarbeitung mit den Informatinen vom
+ * Tiefensensor
+ */
 public class Processing extends Thread {
     private final CameraPreview mCameraRenderer;
     private Mat mImageBuffer;
