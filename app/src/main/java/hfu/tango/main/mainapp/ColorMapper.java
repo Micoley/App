@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Klasse für die Zuordnung von Farben zu den Tiefeninformationen, wobei die Verteilung logarithmisch ist
+ * Klasse fuer die Zuordnung von Farben zu den Tiefeninformationen, wobei die Verteilung logarithmisch ist
  */
 public class ColorMapper {
     private Map<Double, Integer> colorMap;

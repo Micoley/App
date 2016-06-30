@@ -9,7 +9,7 @@ import com.google.atap.tangoservice.TangoCameraPreview;
 import org.opencv.core.Mat;
 
 /**
- * TangoCameraPreview die zur Anzeige des Kamerabildes und als Interface für benoetigte
+ * TangoCameraPreview die zur Anzeige des Kamerabildes und als Interface fuer benoetigte
  * OpenCV-Bilddaten benutzt wird
  */
 public class CameraPreview extends TangoCameraPreview {
