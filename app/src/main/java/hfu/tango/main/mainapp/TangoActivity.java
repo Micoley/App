@@ -32,26 +32,29 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
     /**
      * Wird benötigt um auf die Project Tango spezifischen Sensoren zuzugreifen
      */
-    private Tango mTango;
+    private Tango tango;
 
     /**
      * Einstellungen und Informationen zu den einzelnen Kameras
      */
-    private TangoCameraIntrinsics mCameraIntrinsics;
+    private TangoCameraIntrinsics cameraIntrinsics;
 
     /**
      * Anzeigen der Punktewolke
      */
-    private OverlayRenderer mOverlayRenderer;
+    private OverlayRenderer overlayRenderer;
 
     /**
      * Die View auf der das Kamerabild angezeigt wird
      */
-    private CameraPreview mCameraPreview;
+    private CameraPreview cameraPreview;
 
-    private Processing mProcessing;
+    /**
+     * Klasse, die die Bild- und Tiefendaten verarbeitet
+     */
+    private Processing processing;
 
-    private TextToSpeech mTTS;
+    private TextToSpeech tts;
 
     static {
         System.loadLibrary("opencv_java3");
@@ -64,65 +67,31 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
         setContentView(R.layout.drawer);
 
 
-        mOverlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
-        mTango = new Tango(this);
-        mCameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
-        mCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
-        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
+        overlayRenderer = (OverlayRenderer) findViewById(R.id.overlayRenderer);
+        tango = new Tango(this);
+        cameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
+        cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onInit(int status) {
-                mTTS.setLanguage(Locale.GERMAN);
-                mProcessing = new Processing(mCameraPreview, mTTS, mOverlayRenderer);
-                mProcessing.start();
+            public void onClick(View view) {
+                overlayRenderer.togglePointCloud();
+
             }
         });
-        initializeButtons();
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                overlayRenderer.toggleRectangles();
+
+            }
+        });
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
 
-    }
-
-    private void initializeButtons() {
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean isToggled = mOverlayRenderer.togglePointCloud();
-                if (isToggled) {
-                    fab.setAlpha(1f);
-                } else {
-                    fab.setAlpha(0.5f);
-                }
-
-            }
-        });
-        final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean isToggled = mOverlayRenderer.toggleRectangles();
-                if (isToggled) {
-                    fab2.setAlpha(1f);
-                } else {
-                    fab2.setAlpha(0.5f);
-                }
-
-            }
-        });
-        final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab3);
-        fab3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean isToggled = mProcessing.toggleWarnings();
-                if (isToggled) {
-                    fab3.setAlpha(1f);
-                } else {
-                    fab3.setAlpha(0.5f);
-                }
-
-            }
-        });
     }
 
     @Override
@@ -136,10 +105,12 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
     protected void onResume() {
         super.onResume();
 
-        mTTS = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
+        tts = new TextToSpeech(this, new android.speech.tts.TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                mTTS.setLanguage(Locale.GERMAN);
+                tts.setLanguage(Locale.GERMAN);
+                processing = new Processing(cameraPreview, tts, overlayRenderer);
+                processing.start();
             }
         });
 
@@ -149,7 +120,7 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
             e.printStackTrace();
         }
 
-        mCameraPreview.connectToTangoCamera(mTango,
+        cameraPreview.connectToTangoCamera(tango,
                 TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
     }
 
@@ -157,14 +128,18 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
     protected void onPause() {
         super.onPause();
 
-        mTTS.shutdown();
+        processing.interrupt();
+        processing = null;
+
+        tts.shutdown();
+        tts = null;
 
         try {
-            mTango.disconnect();
+            tango.disconnect();
         } catch (TangoErrorException e) {
             e.printStackTrace();
         }
-        mCameraPreview.disconnectFromTangoCamera();
+        cameraPreview.disconnectFromTangoCamera();
     }
 
     @Override
@@ -172,11 +147,11 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
         super.onDestroy();
 
         try {
-            mTango.disconnect();
+            tango.disconnect();
         } catch (TangoErrorException e) {
             e.printStackTrace();
         }
-        mCameraPreview.disconnectFromTangoCamera();
+        cameraPreview.disconnectFromTangoCamera();
     }
 
     /**
@@ -184,11 +159,11 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
      * der auf Tango-Events reagiert
      */
     private void connectTango() {
-        TangoConfig tangoConfig = mTango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
+        TangoConfig tangoConfig = tango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_MOTIONTRACKING, true);
         tangoConfig.putBoolean(TangoConfig.KEY_BOOLEAN_COLORCAMERA, true);
-        mTango.connect(tangoConfig);
+        tango.connect(tangoConfig);
 
         final ArrayList<TangoCoordinateFramePair> framePairs = new ArrayList<>();
 
@@ -196,7 +171,7 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                 TangoPoseData.COORDINATE_FRAME_DEVICE));
 
-        mTango.connectListener(framePairs, new OnTangoUpdateListener() {
+        tango.connectListener(framePairs, new OnTangoUpdateListener() {
 
             /**
              * Wird aufgerufen wenn neue Daten des Tiefensensors verfügbar sind
@@ -204,9 +179,9 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
              */
             @Override
             public void onXyzIjAvailable(TangoXyzIjData xyzIj) {
-                mOverlayRenderer.update(xyzIj.xyz, mCameraIntrinsics);
-                mOverlayRenderer.postInvalidate();
-                mProcessing.updatePointCloudManager(xyzIj);
+                overlayRenderer.update(xyzIj.xyz, cameraIntrinsics);
+                overlayRenderer.postInvalidate();
+                processing.updatePointCloudManager(xyzIj);
             }
 
             /**
@@ -216,7 +191,7 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
             @Override
             public void onFrameAvailable(int cameraId) {
                 if (cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR) {
-                    mCameraPreview.onFrameAvailable();
+                    cameraPreview.onFrameAvailable();
 
                 }
             }
