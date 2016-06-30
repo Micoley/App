@@ -71,29 +71,54 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
         tango = new Tango(this);
         cameraPreview = (CameraPreview) findViewById(R.id.cameraPreview);
         cameraIntrinsics = tango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+        initializeButtons();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                overlayRenderer.togglePointCloud();
-
-            }
-        });
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                overlayRenderer.toggleRectangles();
-
-            }
-        });
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
 
     }
+    private void initializeButtons(){
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled = overlayRenderer.togglePointCloud();
+                if(isToggled){
+                    fab.setAlpha(1.0f);
+                }else {
+                    fab.setAlpha(0.5f);
+                }
 
+            }
+        });
+        final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled =  overlayRenderer.toggleRectangles();
+                if(isToggled){
+                    fab2.setAlpha(1.0f);
+                }else {
+                    fab2.setAlpha(0.5f);
+                }
+
+            }
+        });
+        final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab3);
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled = processing.toggleWarnings();
+                if(isToggled){
+                    fab3.setAlpha(1.0f);
+                }else {
+                    fab3.setAlpha(0.5f);
+                }
+
+            }
+        });
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
