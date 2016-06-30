@@ -1,5 +1,7 @@
 package hfu.tango.main.mainapp;
 
+import android.util.Log;
+
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class Rectangle {
     @Override
     public String toString() {
         String s = "";
-        for(Point p: points) {
+        for (Point p : points) {
             s += p.x + " " + p.y + "\t";
         }
         return s;
@@ -69,6 +71,27 @@ public class Rectangle {
                 && p[1].x == points[1].x && p[1].y == points[1].y
                 && p[2].x == points[2].x && p[2].y == points[2].y
                 && p[3].x == points[3].x && p[3].y == points[3].y);
+    }
+
+    /**
+     * Überprüft ob sich das Rechteck mit einem anderen überlappt
+     *
+     * @param coordinates Koordinaten für Rechteck
+     * @return true bei überlappung ansonsten false}
+     */
+
+    public boolean isOverlapping(double[] coordinates) {
+        if (points[0].x > coordinates[4] || points[3].x < coordinates[0]) {
+            Log.d("rectange", "falseX");
+            return false;
+        } else if (points[0].y < coordinates[1] || points[1].y > coordinates[3]) {
+            Log.d("rectange", "falseY");
+            return false;
+        } else {
+            Log.d("rectange", "true");
+
+            return true;
+        }
     }
 
     private void pointsToLinearFunctions() {
@@ -137,10 +160,12 @@ public class Rectangle {
     public void setRelativePosition(String relativePosition) {
         this.relativePosition = relativePosition;
     }
-    public void setColor(String color){
+
+    public void setColor(String color) {
         this.color = color;
     }
-    public String getColor(){
+
+    public String getColor() {
         return color;
     }
 

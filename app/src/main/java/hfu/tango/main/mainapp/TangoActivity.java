@@ -1,12 +1,9 @@
 package hfu.tango.main.mainapp;
 
 
-import android.app.Activity;
-import android.graphics.PixelFormat;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +11,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.google.atap.tangoservice.Tango;
@@ -27,8 +23,6 @@ import com.google.atap.tangoservice.TangoEvent;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
-
-import android.support.design.widget.NavigationView;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -82,26 +76,53 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
                 mProcessing.start();
             }
         });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mOverlayRenderer.togglePointCloud();
-
-            }
-        });
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mOverlayRenderer.toggleRectangles();
-
-            }
-        });
+        initializeButtons();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
 
+    }
+
+    private void initializeButtons() {
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled = mOverlayRenderer.togglePointCloud();
+                if (isToggled) {
+                    fab.setAlpha(1f);
+                } else {
+                    fab.setAlpha(0.5f);
+                }
+
+            }
+        });
+        final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled = mOverlayRenderer.toggleRectangles();
+                if (isToggled) {
+                    fab2.setAlpha(1f);
+                } else {
+                    fab2.setAlpha(0.5f);
+                }
+
+            }
+        });
+        final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab3);
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean isToggled = mProcessing.toggleWarnings();
+                if (isToggled) {
+                    fab3.setAlpha(1f);
+                } else {
+                    fab3.setAlpha(0.5f);
+                }
+
+            }
+        });
     }
 
     @Override

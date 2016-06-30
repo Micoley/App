@@ -15,6 +15,15 @@
         android:orientation="vertical"
         android:gravity="right" >
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:rotation="180"
+            android:alpha="0.5"
+            android:src="@android:drawable/ic_dialog_alert" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab2"
@@ -34,7 +43,7 @@
 
             android:rotation="180"
             android:alpha="0.5"
-            android:src="@android:drawable/ic_menu_more" />
+            android:src="@android:drawable/ic_menu_mapmode" />
 
 
     </LinearLayout>

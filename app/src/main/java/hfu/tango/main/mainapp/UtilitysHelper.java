@@ -24,6 +24,7 @@ public class UtilitysHelper {
     public static float getYasDisplayCoordinate(float y, float z) {
         return (y * fy + z * cy) / z * (Display_Heigth / h);
     }
+
     public static float getXAsImageCoordinate(float x, float z) {
         return (x * fx + z * cx) / z * (1280 / w);
     }

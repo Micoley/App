@@ -11,12 +11,8 @@ import org.opencv.core.Point;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 
@@ -32,6 +28,7 @@ public class Processing extends Thread {
     private OverlayRenderer overlayRenderer;
     private TangoPointCloudManager pointCloudManager;
     private ColorCube colorCube;
+    private boolean showWarnings = true;
 
     public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech, OverlayRenderer overlayRenderer) {
         pointCloudManager = new TangoPointCloudManager();
@@ -44,9 +41,22 @@ public class Processing extends Thread {
         };
     }
 
+    /**
+     * Punktewolke an Processing übergeben
+     *
+     * @param buffer Punktewolke von Tiefensensor
+     */
     public void updatePointCloudManager(TangoXyzIjData buffer) {
         pointCloudManager.updateXyzIj(buffer);
     }
+
+    /**
+     * Aktualisiert Processing
+     *
+     * @param buffer     Punktewolke von Tiefensensor
+     * @param rectangles Liste mit Rechtecken
+     * @param mat        Mat Objekt von OpenCV
+     */
 
     public void update(FloatBuffer buffer, List<Rectangle> rectangles, Mat mat) {
         this.buffer = buffer;
@@ -61,8 +71,6 @@ public class Processing extends Thread {
             checkDistanceInAreas(x, y, buffer.get(i + 2));
         }
         mapPointsToObjects(rectangles, mat.clone());
-        overlayRenderer.updateRectangles(rectangles);
-        overlayRenderer.postInvalidate();
 
         if (System.currentTimeMillis() > timeOld + 5000) {
             timeOld = System.currentTimeMillis();
@@ -71,61 +79,58 @@ public class Processing extends Thread {
 
     }
 
+    /**
+     * Gibt Warnungen und das naechste Objekt aus
+     *
+     * @param rectangles Liste mit Rechtecken
+     */
+
     private void readResults(List<Rectangle> rectangles) {
-    /*    if (warnings.size() != 0) {
+        if (warnings.size() != 0 && showWarnings) {
 
             for (String warning : warnings) {
                 Log.d("output", String.valueOf(warning));
                 textToSpeech.speak(warning, TextToSpeech.QUEUE_FLUSH, null);
             }
             warnings.clear();
-        } else {*/
-            Rectangle sr1 = new Rectangle();
-            Rectangle sr2 = new Rectangle();
-            sr1.setDistance(Double.MAX_VALUE);
-            sr2.setDistance(Double.MAX_VALUE);
+        } else {
+            Rectangle sr = new Rectangle();
+            sr.setDistance(Double.MAX_VALUE);
             for (Rectangle rectangle : rectangles) {
                 //   Log.d("Distance", String.valueOf(rectangle.getDistance()));
-                if (rectangle.getDistance() < sr1.getDistance()) {
-                    sr1 = rectangle;
-                } else if (rectangle.getDistance() < sr2.getDistance()) {
-                    sr2 = rectangle;
+                if (rectangle.getDistance() < sr.getDistance()) {
+                    sr = rectangle;
                 }
             }
             String ausgabe;
-            if (sr1.getDistance() < Double.MAX_VALUE) {
-                if (sr1.getDistance() < 1) {
-                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100)) + " zentimetern Entfernung.";
-                } else if (sr1.getDistance() == 1) {
-                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in einem meter Entfernung.";
+            if (sr.getDistance() < Double.MAX_VALUE) {
+                if (sr.getDistance() < 1) {
+                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (Math.round(sr.getDistance() * 100)) + " zentimetern Entfernung.";
+                } else if (sr.getDistance() == 1) {
+                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in einem meter Entfernung.";
                 } else {
-                    ausgabe = "Rechteck" + sr1.getRelativePosition() + " in " + (Math.round(sr1.getDistance() * 100) / 100) + " metern Entfernung.";
+                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (Math.round(sr.getDistance() * 100) / 100) + " metern Entfernung.";
                 }
-                ausgabe += "Farbe " + sr1.getColor() + ".";
+                ausgabe += "Farbe " + sr.getColor() + ".";
                 textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
                 Log.d("Ausgabe", ausgabe);
 
             }
-            if (sr2.getDistance() < Double.MAX_VALUE) {
-                if (sr2.getDistance() < 1) {
-                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100)) + " zentimetern Entfernung.";
 
-                } else if (sr2.getDistance() == 1) {
-                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in einem meter Entfernung.";
-                } else {
-                    ausgabe = "Rechteck" + sr2.getRelativePosition() + " in " + (Math.round(sr2.getDistance() * 100) / 100) + " metern Entfernung.";
-                }
-                ausgabe += "Farbe " + sr2.getColor() + ".";
-                textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
-                Log.d("Ausgabe", ausgabe);
-            }
-
-    //    }
-        //   textToSpeech.speakWithDelay("" + rectangles.size() + " obstacles detected.", 0);
+            //    }
+            //   textToSpeech.speakWithDelay("" + rectangles.size() + " obstacles detected.", 0);
         /*for (Rectangle rectangle : rectangles) {
             textToSpeech.speakWithDelay("There is a rectangle, distance " + rectangle.getDistance() + "meters, position " + rectangle.getRelativePosition() + ".", 0);
         }*/
+        }
     }
+
+    /**
+     * Weist den Rechtecken die dazugehörigen Punkte aus der Punktwolke zu
+     *
+     * @param rectangles Liste mit Rechtecken
+     * @param mat        Mat Objekt von OpenCV
+     */
 
     private void mapPointsToObjects(List<Rectangle> rectangles, Mat mat) {
         Rectangle rectangle;
@@ -133,7 +138,7 @@ public class Processing extends Thread {
         for (int e = 0; e < rectangles.size(); e++) {
             rectangle = rectangles.get(e);
             Point points[] = rectangle.getPoints();
-            if(points[3].x - points[0].x > 10 && points[0].y - points[2].y > 10 && points[3].x - points[0].x < UtilitysHelper.Display_Width - 10 &&  points[0].y - points[2].y < UtilitysHelper.Display_Heigth - 10) {
+            if (points[3].x - points[0].x > 10 && points[0].y - points[2].y > 10 && points[3].x - points[0].x < UtilitysHelper.Display_Width - 10 && points[0].y - points[2].y < UtilitysHelper.Display_Heigth - 10) {
                 for (int i = 0; i < buffer.capacity(); i += 3) {
                     x = UtilitysHelper.getXAsImageCoordinate(buffer.get(i), buffer.get(i + 2));
                     y = UtilitysHelper.getYAsImageCoordinate(buffer.get(i + 1), buffer.get(i + 2));
@@ -151,50 +156,49 @@ public class Processing extends Thread {
         }
     }
 
-    private void setRelativePosition(Rectangle rectangle) {
-        Point[] points = rectangle.getPoints();
-        float minDistanceX = Float.MAX_VALUE;
-        float minDistanceY = Float.MAX_VALUE;
-        float middleAreaWidth = 0.3f;
-        float middleAreaHeight = 0.3f;
-        for (int i = 0; i < points.length; i++) {
-            float dx = (float) (UtilitysHelper.Image_Width / 2 - points[i].x);
-            float dy = (float) (UtilitysHelper.Image_Heigth / 2 - points[i].y);
-            if (Math.abs(dx) < Math.abs(minDistanceX)) {
-                minDistanceX = Math.abs(dx);
-            }
-            if (Math.abs(dy) < Math.abs(minDistanceY)) {
-                minDistanceY = Math.abs(dy);
-            }
-        }
-        if (minDistanceX < UtilitysHelper.Image_Width * ((1 - middleAreaWidth) / 2)) {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
-                rectangle.setRelativePosition("links, unten");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
-                rectangle.setRelativePosition("links, oben");
-            } else {
-                rectangle.setRelativePosition("links");
-            }
-        }
-        if (minDistanceX > UtilitysHelper.Image_Width * ((1 - middleAreaWidth) / 2) + middleAreaWidth) {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
-                rectangle.setRelativePosition("rechts, unten");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
-                rectangle.setRelativePosition("rechts, oben");
-            } else {
-                rectangle.setRelativePosition("rechts");
-            }
-        } else {
-            if (minDistanceY < UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2)) {
-                rectangle.setRelativePosition("vorne, unten");
-            } else if (minDistanceY > UtilitysHelper.Image_Heigth * ((1 - middleAreaHeight) / 2) + middleAreaHeight) {
-                rectangle.setRelativePosition("vorne, oben");
-            } else {
-                rectangle.setRelativePosition("vorne");
-            }
-        }
+    /**
+     * Weist dem Rechteck eine Position Relativ zum Gesamtbild zu
+     *
+     * @param rectangle Rechteck
+     */
 
+    public void setRelativePosition(Rectangle rectangle) {
+        String position = "";
+        double imageWidth = UtilitysHelper.Image_Width;
+        double imageHeigth = UtilitysHelper.Image_Heigth;
+        double[] middle = {imageWidth / 3, imageHeigth / 3, imageWidth / 3, imageHeigth * 2 / 3, imageWidth * 2 / 3, imageHeigth * 2 / 3, imageWidth * 2 / 3, imageHeigth / 3};
+        double[] left = {0, 0, 0, imageHeigth, imageWidth / 3, imageHeigth, imageWidth / 3, 0};
+        double[] right = {imageWidth * 2 / 3, 0, imageWidth * 2 / 3, imageHeigth, imageWidth, imageHeigth, imageWidth, 0};
+        double[] top = {0, 0, 0, imageHeigth / 3, imageWidth, imageHeigth / 3, imageWidth, 0};
+        double[] bottom = {0, imageHeigth * 2 / 3, 0, imageHeigth, imageWidth, 0, imageWidth, imageWidth * 2 / 3};
+
+        if ((rectangle.isOverlapping(left) && rectangle.isOverlapping(right)) || (rectangle.isOverlapping(top) && rectangle.isOverlapping(bottom))) {
+            position = "vorne";
+        } else {
+            if (rectangle.isOverlapping(middle)) {
+                position += "vorne";
+            }
+            if (rectangle.isOverlapping(left)) {
+                position += " links";
+            }
+            if (rectangle.isOverlapping(right)) {
+                position += " rechts";
+            }
+            if (rectangle.isOverlapping(top)) {
+                position += " oben";
+            }
+            if (rectangle.isOverlapping(bottom)) {
+                position += " unten";
+            }
+        }
+        rectangle.setRelativePosition(position);
     }
+
+    /**
+     * Überprüft die Punktwolke auf zu nahe Objekte und trägt Warungen in eine Liste ein
+     *
+     * @param x,y,z Koordinaten
+     */
 
     private void checkDistanceInAreas(float x, float y, float z) {
         float middleAreaWidth = 0.3f;
@@ -254,6 +258,13 @@ public class Processing extends Thread {
 
     }
 
+    /**
+     * Überprüft ob sich ein Punkt im Rechteck befindet
+     *
+     * @param x,y       Koordinaten
+     * @param rectangle Rechteck
+     * @return true wenn der Punkt sich im Rechteck befindet, ansonsten false
+     */
 
     private boolean isPointInRectangleSimple(double x, double y, Rectangle rectangle) {
         Point[] points = rectangle.getPoints();
@@ -265,6 +276,13 @@ public class Processing extends Thread {
         return false;
     }
 
+    /**
+     * Weist einem Rechteck eine Farbe zu
+     *
+     * @param rectangle Liste mit Rechtecken
+     * @param mat       Mat Objekt von OpenCV
+     */
+
     public void setRectangleColor(Rectangle rectangle, Mat mat) {
         Point points[] = rectangle.points;
         int precision = 10;
@@ -273,21 +291,21 @@ public class Processing extends Thread {
         ArrayList<Integer> count = new ArrayList<>();
         String color;
         //Map<String, Integer> colorCount = new TreeMap<>();
-      //  Log.d("Color", String.valueOf(rectangle.points[0].y) + " " + String.valueOf(rectangle.points[2].y));
+        //  Log.d("Color", String.valueOf(rectangle.points[0].y) + " " + String.valueOf(rectangle.points[2].y));
         for (int x = (int) points[0].x; x <= (int) rectangle.points[3].x - precision; x += precision) {
 
             for (int y = (int) points[2].y; y <= (int) rectangle.points[0].y - precision; y += precision) {
 
                 double data[] = mat.get(y, x);
                 int dataInt[] = new int[3];
-                for(int i = 0; i < data.length; i++){
+                for (int i = 0; i < data.length; i++) {
                     dataInt[i] = (int) data[i];
                 }
                 color = colorCube.getColor(dataInt);
-                if(names.contains(color)){
+                if (names.contains(color)) {
                     int index = names.indexOf(color);
-                    count.set(index,count.get(index) + 1);
-                }else{
+                    count.set(index, count.get(index) + 1);
+                } else {
                     names.add(color);
                     count.add(1);
                 }
@@ -306,8 +324,8 @@ public class Processing extends Thread {
         }
         int max = 0;
         int maxIndex = 0;
-        for(int i = 0; i < count.size(); i++){
-            if(count.get(i) > max){
+        for (int i = 0; i < count.size(); i++) {
+            if (count.get(i) > max) {
                 max = count.get(i);
                 maxIndex = i;
             }
@@ -386,8 +404,11 @@ public class Processing extends Thread {
             mImageBuffer = mCameraRenderer.getLatestBufferData();
             if (mImageBuffer != null) {
                 List<Rectangle> objects = mObjectDetection.contours(mImageBuffer);
+
                 if (OverlayRenderer.intrinsics != null) {
                     this.update(pointCloudManager.getLatestXyzIj().xyz, objects, mImageBuffer);
+                    overlayRenderer.updateRectangles(objects);
+                    overlayRenderer.postInvalidate();
                 }
                 //List<Rectangle> objects = mObjectDetection.houghLinesP(mImageBuffer);
                 Log.d("HFU_DEBUG", "Erkannte Objekte: " + String.valueOf(objects.size()));
@@ -397,6 +418,11 @@ public class Processing extends Thread {
                 }
             }
         }
+    }
+
+    public boolean toggleWarnings() {
+        showWarnings = !showWarnings;
+        return showWarnings;
     }
 
 
