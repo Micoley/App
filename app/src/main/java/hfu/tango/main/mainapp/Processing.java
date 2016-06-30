@@ -28,7 +28,7 @@ public class Processing extends Thread {
     private OverlayRenderer overlayRenderer;
     private TangoPointCloudManager pointCloudManager;
     private ColorCube colorCube;
-    private boolean showWarnings = true;
+    private boolean showWarnings;
 
     public Processing(CameraPreview cameraRenderer, TextToSpeech textToSpeech, OverlayRenderer overlayRenderer) {
         pointCloudManager = new TangoPointCloudManager();
@@ -37,6 +37,7 @@ public class Processing extends Thread {
         mObjectDetection = new ObjectDetection();
         this.textToSpeech = textToSpeech;
         colorCube = new ColorCube();
+        showWarnings = false;
         warnings = new TreeSet<String>() {
         };
     }
@@ -74,7 +75,7 @@ public class Processing extends Thread {
 
         if (System.currentTimeMillis() > timeOld + 5000) {
             timeOld = System.currentTimeMillis();
-            readResults(rectangles);
+            readResults(rectangles, mat);
         }
 
     }
@@ -85,7 +86,7 @@ public class Processing extends Thread {
      * @param rectangles Liste mit Rechtecken
      */
 
-    private void readResults(List<Rectangle> rectangles) {
+    private void readResults(List<Rectangle> rectangles, Mat mat) {
         if (warnings.size() != 0 && showWarnings) {
 
             for (String warning : warnings) {
@@ -104,12 +105,14 @@ public class Processing extends Thread {
             }
             String ausgabe;
             if (sr.getDistance() < Double.MAX_VALUE) {
-                if (sr.getDistance() < 1) {
-                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (Math.round(sr.getDistance() * 100)) + " zentimetern Entfernung.";
-                } else if (sr.getDistance() == 1) {
+                double distance = (Math.round(sr.getDistance() * 100));
+                setRectangleColor(sr, mat);
+                if (distance < 100) {
+                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (int) distance + " zentimetern Entfernung.";
+                } else if (distance == 100) {
                     ausgabe = "Rechteck " + sr.getRelativePosition() + " in einem meter Entfernung.";
                 } else {
-                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (Math.round(sr.getDistance() * 100) / 100) + " metern Entfernung.";
+                    ausgabe = "Rechteck " + sr.getRelativePosition() + " in " + (distance / 100) + " metern Entfernung.";
                 }
                 ausgabe += "Farbe " + sr.getColor() + ".";
                 textToSpeech.speak(ausgabe, TextToSpeech.QUEUE_FLUSH, null);
@@ -150,7 +153,7 @@ public class Processing extends Thread {
                 }
                 setRelativePosition(rectangle);
                 setMedianDistance(rectangle);
-                setRectangleColor(rectangle, mat);
+                //  setRectangleColor(rectangle, mat);
             }
             // updateRectangleCoordinates(rectangle);
         }
@@ -276,6 +279,15 @@ public class Processing extends Thread {
         return false;
     }
 
+    private boolean isPointInRectangleSimple(double x, double y, double[] array) {
+        if (y < array[1] && y > array[3]) {
+            if (x > array[0] && x < array[6]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Weist einem Rechteck eine Farbe zu
      *
@@ -285,16 +297,16 @@ public class Processing extends Thread {
 
     public void setRectangleColor(Rectangle rectangle, Mat mat) {
         Point points[] = rectangle.points;
-        int precision = 10;
-        int colorCount[] = new int[3]; // r, g, b
+        int precision = 1;
         ArrayList<String> names = new ArrayList<>();
         ArrayList<Integer> count = new ArrayList<>();
         String color;
-        //Map<String, Integer> colorCount = new TreeMap<>();
-        //  Log.d("Color", String.valueOf(rectangle.points[0].y) + " " + String.valueOf(rectangle.points[2].y));
-        for (int x = (int) points[0].x; x <= (int) rectangle.points[3].x - precision; x += precision) {
+        int borderX = (int) ((points[3].x - points[0].x) * 0.1);
+        int borderY = (int) ((points[0].y - points[2].y) * 0.1);
 
-            for (int y = (int) points[2].y; y <= (int) rectangle.points[0].y - precision; y += precision) {
+        for (int x = (int) points[0].x + borderX; x <= (int) rectangle.points[3].x - precision - borderX; x += precision) {
+
+            for (int y = (int) points[2].y + borderY; y <= (int) rectangle.points[0].y - precision - borderY; y += precision) {
 
                 double data[] = mat.get(y, x);
                 int dataInt[] = new int[3];
@@ -309,17 +321,6 @@ public class Processing extends Thread {
                     names.add(color);
                     count.add(1);
                 }
-              /*  if (data[0] > data[1] && data[0] > data[2]) {
-                    colorCount[0] ++;
-                }else if(data[1] > data[0] && data[1] > data[2]){
-                    colorCount[1] ++;
-                }else if(colorCount[2] > colorCount[0] && colorCount[2] > colorCount[1]){
-                    colorCount[2] ++;
-                }
-                */
-                colorCount[0] += data[0];
-                colorCount[1] += data[1];
-                colorCount[2] += data[2];
             }
         }
         int max = 0;
@@ -330,24 +331,44 @@ public class Processing extends Thread {
                 maxIndex = i;
             }
         }
-        rectangle.setColor(names.get(maxIndex));
-        /*if (colorCount[0] > colorCount[1] && colorCount[0] > colorCount[2]) {
-            rectangle.setColor("rot");
-        }else if(colorCount[1] > colorCount[0] && colorCount[1] > colorCount[2]){
-            rectangle.setColor("grün");
-        }else if(colorCount[2] > colorCount[0] && colorCount[2] > colorCount[1]){
-            rectangle.setColor("blau");
-        }/*
-
-
-      /*  for(Integer value: colorCount.values()){
-            if(value > max){
-                max = value;
-            }
+        Log.d("color", "new rectangle");
+        for (int i = 0; i < names.size(); i++) {
+            Log.d("color", names.get(i) + " count" + String.valueOf(count.get(i)));
         }
-      */
+        Log.d("color", "-------------------------------------");
+        if (names.size() > 0) {
+            rectangle.setColor(names.get(maxIndex));
+        }
+
 
     }
+
+    public void setRectangleColorTest(Rectangle rectangle, Mat mat) {
+        Point points[] = rectangle.points;
+        int precision = 5;
+        int count = 0;
+        int borderX = (int) ((points[3].x - points[0].x) * 0.1);
+        int borderY = (int) ((points[0].y - points[2].y) * 0.1);
+        int dataInt[] = new int[3];
+        for (int x = (int) points[0].x + borderX; x <= (int) rectangle.points[3].x - precision - borderX; x += precision) {
+            for (int y = (int) points[2].y + borderY; y <= (int) rectangle.points[0].y - precision - borderY; y += precision) {
+                double data[] = mat.get(y, x);
+                for (int i = 0; i < data.length; i++) {
+                    dataInt[i] += (int) data[i];
+                }
+                count++;
+            }
+        }
+        if (count != 0) {
+            for (int i = 0; i < dataInt.length; i++) {
+                dataInt[i] = dataInt[i] / count;
+            }
+            rectangle.setColor(colorCube.getColor(dataInt));
+        } else {
+            rectangle.setColor("undefiniert");
+        }
+    }
+
 
     private void updateRectangleCoordinates(Rectangle rectangle) {
         ArrayList<Float> distancePoints = rectangle.getDistancePoints();

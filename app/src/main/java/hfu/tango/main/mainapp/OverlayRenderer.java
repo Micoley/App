@@ -30,7 +30,7 @@ public class OverlayRenderer extends View implements Runnable {
         paint = new Paint();
         paint.setStrokeWidth(5);
         paintR = new Paint();
-        paintR.setStrokeWidth(2);
+        paintR.setStrokeWidth(5);
         paintR.setStyle(Paint.Style.STROKE);
     }
 
@@ -107,7 +107,6 @@ public class OverlayRenderer extends View implements Runnable {
             //paint.setColor(zToColor((float)rectangle.getDistance())); */
 
             paintR.setColor(zToColor((float) rectangle.getDistance()));
-
             canvas.drawPath(path, paintR);
 
             // canvas.drawRect((float)points[0].x * ratioX, (float)points[2].y * ratioY, (float) points[2].x * ratioX, (float) points[0].y * ratioY, paintR);

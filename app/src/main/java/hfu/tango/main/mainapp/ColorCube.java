@@ -19,12 +19,7 @@ public class ColorCube {
      */
     private ArrayList<String> getStandardNames() {
         ArrayList<String> names = new ArrayList<>();
-      /*  names.add("schwarz");
-        names.add("dunkelbau");
-        names.add("blau");
-        names.add("köngisblau");
-        names.add("ovlivgrün");
-        names.add("himmelblau");
+     /*   names.add("schwarz");
         names.add("dunkelgrün");
         names.add("dschungelgrün");
         names.add("grün");
@@ -32,7 +27,11 @@ public class ColorCube {
         names.add("türkis");
         names.add("hellgrün");
         names.add("gelbgrün");
-
+        names.add("dunkelbau");
+        names.add("blau");
+        names.add("köngisblau");
+        names.add("ovlivgrün");
+        names.add("himmelblau");
         names.add("kirschrot");
         names.add("rotviolet");
         names.add("rot");
@@ -46,7 +45,7 @@ public class ColorCube {
         names.add("gelb");
         names.add("zitronengelb");
         names.add("weiss");
-        names.add("weiss");}
+        names.add("weiss");
         */
         names.add("schwarz");
         names.add("blau");
@@ -56,8 +55,9 @@ public class ColorCube {
         names.add("magenta");
         names.add("gelb");
         names.add("weiss");
-        return names;
 
+
+        return names;
     }
 
     /**

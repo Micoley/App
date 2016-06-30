@@ -20,7 +20,8 @@
         <!-- android:theme="@style/AppTheme"> -->
         <activity
             android:name=".TangoActivity"
-            android:label="Entfernungsmesser">
+            android:label="Entfernungsmesser"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
