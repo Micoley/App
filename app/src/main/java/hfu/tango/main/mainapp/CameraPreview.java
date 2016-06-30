@@ -9,7 +9,7 @@ import com.google.atap.tangoservice.TangoCameraPreview;
 import org.opencv.core.Mat;
 
 /**
- * TangoCameraPreview die zur Anzeige des Kamerabildes und als Interface für benoetigte
+ * TangoCameraPreview die zur Anzeige des Kamerabildes und als Interface fuer benoetigte
  * OpenCV-Bilddaten benutzt wird
  */
 public class CameraPreview extends TangoCameraPreview {
@@ -52,7 +52,7 @@ public class CameraPreview extends TangoCameraPreview {
     /**
      * Holt die letzten verfuegbaren Bilddaten der Tango-API
      *
-     * @return die Bilddaten als OpenCV-Matrix oder null falls kein Buffer verfügbar ist
+     * @return die Bilddaten als OpenCV-Matrix oder null falls kein Buffer verfuegbar ist
      */
     public Mat getLatestBufferData() {
         Mat mat = new Mat();

@@ -1,7 +1,7 @@
 package hfu.tango.main.mainapp;
 
 /**
- * Created by Timo on 03.06.2016.
+ * Klasse mit statischen Hilfsfunktionen und Attributen
  */
 public class UtilitysHelper {
     private static float fx = (float) OverlayRenderer.intrinsics.fx;

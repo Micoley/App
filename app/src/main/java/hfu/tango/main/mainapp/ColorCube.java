@@ -2,6 +2,9 @@ package hfu.tango.main.mainapp;
 
 import java.util.ArrayList;
 
+/**
+ * Ein RGB-Farbwuerfel mit dem man Farben einteilen kann mit belieber Groesse (n^3)
+ */
 public class ColorCube {
 
     private int corners[][];
@@ -13,7 +16,7 @@ public class ColorCube {
     }
 
     /**
-     * Trägt die Namen der Farben in der richtigen Reihenfolge in eine Liste
+     * Traegt die Namen der Farben in der richtigen Reihenfolge in eine Liste
      *
      * @return ArrayList<String> Liste der Farbnamen
      */
@@ -61,9 +64,9 @@ public class ColorCube {
     }
 
     /**
-     * Unterteilt den RGB Farbwürfel in kleinere Würfel
+     * Unterteilt den RGB Farbwuerfel in kleinere Wuerfel
      *
-     * @param count Anzahl der Würfel(N^3)
+     * @param count Anzahl der Wuerfel(N^3)
      */
 
     private void createSubCubes(int count) {
@@ -92,7 +95,7 @@ public class ColorCube {
     }
 
     /**
-     * Gibt zu einem rgb Array die Farbe zurück
+     * Gibt zu einem rgb Array die Farbe zurueck
      *
      * @param rgb rgb Array
      * @return Eine Farbe als String
@@ -109,11 +112,11 @@ public class ColorCube {
 
 
     /**
-     * Überprüft ob Farbe in Unterwürfel ist
+     * Ueberprueft ob Farbe in Unterwuerfel ist
      *
      * @param rgb   rgb Array
-     * @param index , index des Farbwürfels
-     * @return true wenn Farbe in Würfel enthalten ist
+     * @param index , index des Farbwuerfels
+     * @return true wenn Farbe in Wuerfel enthalten ist
      */
     private boolean isInSubCube(int rgb[], int index) {
         return rgb[0] >= corners[index][0] && rgb[1] >= corners[index][1] && rgb[2] >= corners[index][2] &&

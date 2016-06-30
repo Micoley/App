@@ -16,6 +16,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
+/**
+ * Klasse zur Verarbeitung von Informationen aus der Bildverarbeitung mit den Informatinen vom
+ * Tiefensensor
+ */
 public class Processing extends Thread {
     private final CameraPreview mCameraRenderer;
     private Mat mImageBuffer;
@@ -43,7 +47,7 @@ public class Processing extends Thread {
     }
 
     /**
-     * Punktewolke an Processing übergeben
+     * Punktewolke an Processing uebergeben
      *
      * @param buffer Punktewolke von Tiefensensor
      */
@@ -129,7 +133,7 @@ public class Processing extends Thread {
     }
 
     /**
-     * Weist den Rechtecken die dazugehörigen Punkte aus der Punktwolke zu
+     * Weist den Rechtecken die dazugehoerigen Punkte aus der Punktwolke zu
      *
      * @param rectangles Liste mit Rechtecken
      * @param mat        Mat Objekt von OpenCV
@@ -198,7 +202,7 @@ public class Processing extends Thread {
     }
 
     /**
-     * Überprüft die Punktwolke auf zu nahe Objekte und trägt Warungen in eine Liste ein
+     * Ueberprüft die Punktwolke auf zu nahe Objekte und traegt Warungen in eine Liste ein
      *
      * @param x,y,z Koordinaten
      */
@@ -258,11 +262,10 @@ public class Processing extends Thread {
             }
         }
         rectangle.setDistance(sum / count);
-
     }
 
     /**
-     * Überprüft ob sich ein Punkt im Rechteck befindet
+     * Ueberprueft ob sich ein Punkt im Rechteck befindet
      *
      * @param x,y       Koordinaten
      * @param rectangle Rechteck
