@@ -22,7 +22,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
      * 3. Linienbegradigung und Invertierung
      * 4. findContours() sucht Konturen
      * 5. Aus Konturen werden umschließende Rechtecke errechnet
-     * 6. Gibt Liste von Rechtecken zurück
+     * 6. Gibt Liste von Rechtecken zurueck
      *
      * @param m1 Eingabebild als Mat
      */
@@ -77,7 +77,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
                 }
             }
         }
-        return output; //Gibt Liste von Rechtecken zurück
+        return output; //Gibt Liste von Rechtecken zurueck
     }
 
     /**
@@ -87,8 +87,8 @@ public class ObjectDetection implements OpenCvComponentInterface {
      * 2. Cannyfilter sucht Kanten
      * 3. Linienbegradigung und Linienverdickung
      * 4. houghlinesP sucht Linien
-     * 5. Jeweils 2 der gefundenen Linien werden untersucht und wenn möglich verbunden.
-     * 6. Jeweils 2 der verbundenen Linien werden untersucht und wenn möglich verbunden.
+     * 5. Jeweils 2 der gefundenen Linien werden untersucht und wenn moeglich verbunden.
+     * 6. Jeweils 2 der verbundenen Linien werden untersucht und wenn moeglich verbunden.
      * 7. Gefundene Vierecke werden verglichen und zu ähnliche werden aussortiert.
      * 8. Gibt Liste von Vierecken zurück
      *
@@ -116,7 +116,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
 
         Imgproc.HoughLinesP(m, lines, 1, Math.PI / 180, 80, 80, 10); //houghlinesP sucht Linien
 
-        //Jeweils 2 der gefundenen Linien werden untersucht und wenn möglich verbunden.
+        //Jeweils 2 der gefundenen Linien werden untersucht und wenn moeglich verbunden.
         double maxDistance = 10;
         double minAngle = 40;
         List<double[]> twoLines = new ArrayList<double[]>();
@@ -182,7 +182,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
             }
         }
 
-        //Jeweils 2 der verbundenen Linien werden untersucht und wenn möglich verbunden.
+        //Jeweils 2 der verbundenen Linien werden untersucht und wenn moeglich verbunden.
         for (double[] a : twoLines) {
             for (double[] b : twoLines) {
                 if ((a[2] != b[2]) && (a[3] != b[3])) {
@@ -211,7 +211,7 @@ public class ObjectDetection implements OpenCvComponentInterface {
                 }
             }
         }
-        output = filter(rec); //Gefundene Vierecke werden verglichen und zu ähnliche werden aussortiert.
+        output = filter(rec); //Gefundene Vierecke werden verglichen und zu aehnliche werden aussortiert.
         return output; //Gibt Liste von Vierecken zurück
     }
 
