@@ -377,7 +377,7 @@ public class Processing extends Thread {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Thread.currentThread().interrupt();
+                break;
             }
             Log.d("HFU_DEBUG", "processing aufgerufen");
             imageBuffer = cameraPreview.getLatestBufferData();

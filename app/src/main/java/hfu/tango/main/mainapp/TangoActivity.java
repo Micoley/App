@@ -128,11 +128,11 @@ public class TangoActivity extends AppCompatActivity implements NavigationView.O
     protected void onPause() {
         super.onPause();
 
-        tts.shutdown();
-        tts = null;
-
         processing.interrupt();
         processing = null;
+
+        tts.shutdown();
+        tts = null;
 
         try {
             tango.disconnect();
